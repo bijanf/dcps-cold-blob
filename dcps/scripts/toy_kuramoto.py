@@ -170,6 +170,23 @@ def main():
     print(f"  Cell-wise rho(<r_loc>_t, F^2) = {rho:+.3f}  p = {p:.2e}  "
           f"n = {int(valid.sum())}")
 
+    # R2-M5 (Round 2): within-region rho in high-F^2 vs low-F^2 halves.
+    # Reviewer asks whether the toy model reproduces the observed
+    # between-region vs within-region decomposition.
+    median_f2 = float(np.nanmedian(f2_flat[valid]))
+    hi_mask = (f2_flat > median_f2) & valid
+    lo_mask = (f2_flat <= median_f2) & valid
+    rho_hi, p_hi = pearsonr(rl_flat[hi_mask], f2_flat[hi_mask])
+    rho_lo, p_lo = pearsonr(rl_flat[lo_mask], f2_flat[lo_mask])
+    print(f"  Within-region (high-F^2 half, n={int(hi_mask.sum())}):  "
+          f"rho = {rho_hi:+.3f}  p = {p_hi:.2e}")
+    print(f"  Within-region (low-F^2 half, n={int(lo_mask.sum())}):   "
+          f"rho = {rho_lo:+.3f}  p = {p_lo:.2e}")
+    interp = ("BETWEEN-region contrast only (within-region rhos near zero)"
+              if abs(rho_hi) < 0.2 and abs(rho_lo) < 0.2
+              else "WITHIN-region rho non-trivial in at least one half")
+    print(f"  Interpretation: {interp}")
+
     sign_match = (rho < 0)
     print(f"  Expected sign: NEGATIVE.  Result: "
           f"{'NEGATIVE -> matches observation' if sign_match else 'POSITIVE -> does not match'}")
@@ -179,6 +196,16 @@ def main():
         rho=float(rho), p=float(p),
         n=int(valid.sum()),
         sign_match=bool(sign_match),
+        within_region=dict(
+            median_F2=median_f2,
+            high_F2_half_rho=float(rho_hi),
+            high_F2_half_n=int(hi_mask.sum()),
+            high_F2_half_p=float(p_hi),
+            low_F2_half_rho=float(rho_lo),
+            low_F2_half_n=int(lo_mask.sum()),
+            low_F2_half_p=float(p_lo),
+            interpretation=interp,
+        ),
         params=dict(K=K, sigma_omega=SIGMA_OMEGA, noise_base=NOISE_BASE,
                      noise_scale=NOISE_SCALE, ny=NY, nx=NX,
                      t_months=T_MONTHS, dt_yr=DT_YR,
