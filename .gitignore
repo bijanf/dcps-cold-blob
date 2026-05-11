@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+*.egg
+build/
+dist/
+.venv/
+venv/
+
+# LaTeX build artifacts
+manuscript/build/
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Analysis caches (regenerable from scripts)
+dcps/cache/
+
+# Stale/old figures not used in current manuscript
+dcps/figures/
+
+# Bulk external data (downloadable from upstream sources)
+data/external/hadisst/
+data/external/palmod_130k/lipd_unzipped/
+data/external/palmod_130k/PalMod2_0_0.zip
+
+# Editor / OS artifacts
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets and credentials (just in case)
+*.env
+*.pem
+credentials.json
+token.json
+secrets/
+.aws/
