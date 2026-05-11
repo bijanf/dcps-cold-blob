@@ -159,6 +159,18 @@ def main():
     # across both panels) so the modern departure is visually obvious.
     for ax in (ax_a, ax_b):
         ax.axhspan(env_lo, env_hi, color="0.85", alpha=0.55, zorder=0)
+    # R2-M9 (reviewer B8): mark the 770-yr PALMOD-HadISST coverage gap
+    # with a hatched grey region so the reader's eye does not read
+    # continuity across an unmeasured interval.  PALMOD's youngest
+    # bin ends near 1100 CE; HadISST starts at 1870 CE.
+    palmod_last_year = float(np.nanmax(paleo_years[np.isfinite(paleo_contrast)]))
+    hadisst_first_year = 1870.0
+    if hadisst_first_year > palmod_last_year:
+        ax_a.axvspan(palmod_last_year, hadisst_first_year,
+                       facecolor="none", edgecolor="0.4",
+                       hatch="///", alpha=0.45, zorder=2,
+                       label=f"770-yr coverage gap "
+                             f"({palmod_last_year:.0f}--{hadisst_first_year:.0f} CE)")
     # Time-varying PALMOD bootstrap uncertainty band on top.
     ax_a.fill_between(paleo_years, paleo_p16, paleo_p84,
                        color="C0", alpha=0.25, zorder=1)
