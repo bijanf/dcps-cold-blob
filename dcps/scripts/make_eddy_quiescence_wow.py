@@ -94,12 +94,20 @@ def main():
     ax_eke.text(-0.10, 1.02, "a", transform=ax_eke.transAxes,
                   fontweight="bold", fontsize=14)
 
-    # ----- panel b: 2 deg r_loc map -------------------------------------
+    # ----- panel b: 2 deg r_loc map (bilinear-shaded for visual parity
+    # with panel a; the underlying data is still 2 deg) ------------------
     R = rl_2deg.values
-    im_rl = ax_rl.pcolormesh(actual_lon, lat_2deg, R,
-                                 cmap="viridis", shading="auto",
-                                 vmin=np.nanpercentile(R, 3),
-                                 vmax=np.nanpercentile(R, 97))
+    # imshow with bilinear interpolation gives smooth rendering for the
+    # coarse 2 deg grid so the panel reads at the same visual fidelity
+    # as the downsampled 1/12 deg panel a.
+    im_rl = ax_rl.imshow(
+        R,
+        extent=[actual_lon.min() - 1, actual_lon.max() + 1,
+                lat_2deg.min() - 1, lat_2deg.max() + 1],
+        origin="lower", aspect="auto",
+        cmap="viridis", interpolation="bilinear",
+        vmin=np.nanpercentile(R, 3), vmax=np.nanpercentile(R, 97),
+    )
     cb_rl = fig.colorbar(im_rl, cax=cax_rl,
                             label=r"$\langle r_{\mathrm{loc}}\rangle_t$  (phase coherence)")
     cb_rl.ax.tick_params(labelsize=9)
