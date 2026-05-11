@@ -24,22 +24,37 @@ private working copy.
 | `data/external/` | Small reference datasets (Caesar 2021 multi-proxy xlsx, Thornalley 2018 CSV, Steinhilber 2012 TSI). Bulk data (HadISST, PALMOD LiPD) is gitignored; see *Reproducing* below. |
 | `CLAUDE.md`, `roadmap.md` | Working notes |
 
-## Headline findings
+## Headline findings (revised submission)
 
 1. **Multi-basin Quiescence pattern** — time-mean local Kuramoto
    coherence anti-correlates with the climatological sea-surface-height
    gradient across three independent ocean basins (NA, NP, ACC;
-   Pearson ρ = −0.32, −0.35, −0.46, all p < 10⁻²⁶).
-2. **Direct mechanistic evidence** — geostrophic eddy kinetic energy
-   from ORAS5 SSH anti-correlates with local coherence in two of
-   three basins (ρ = −0.34, −0.45 in NP and ACC).
-3. **Unprecedented at every resolved timescale** — the modern
-   subpolar–subtropical SST contrast trend rate is outside the
-   Holocene Sen-slope envelope at |z| = 3.6 (500-yr), 5.2 (1000-yr),
-   11.9 (2000-yr), 37.6 (5000-yr) sliding windows in PALMOD-130k.
-   Three of four high-resolution Caesar 2021 multi-proxy records
-   confirm at decadal-to-centennial scales (|z| up to 22.1).
-4. **CMIP6 emergent-constraint subset** — the three models matching
+   Pearson ρ = −0.32, −0.35, −0.46, all FDR-corrected q < 10⁻²⁶).
+2. **Direct mechanistic evidence at native 1/12° resolution** —
+   geostrophic EKE from GLORYS12 native 1/12° SSH (box-averaged to
+   2° for cell-wise comparison) anti-correlates with local coherence
+   in the North Atlantic at ρ = −0.351 (recovering the 2°-native NA
+   shortfall of ρ = −0.20). NP and ACC at 2° give ρ = −0.34, −0.45.
+3. **Atmospheric forcing is not driving the pattern** — joint NAO+AMO
+   regression explains only 3.8% of cell-wise variance in
+   `<r_loc>(t)` over 2000–2023, far below the 30% threshold for
+   partial atmospheric attribution.
+4. **Unprecedented at every resolved timescale, with bootstrap CIs** —
+   full-pipeline 1000-replicate block-bootstrap |z|-score with 95%
+   CIs: 2.94 [2.31, 3.84] (500-yr), 5.84 [4.29, 8.16] (1000-yr),
+   14.27 [9.49, 22.84] (2000-yr), 61.66 [31.78, 133.25] (5000-yr).
+   Forward-proxy bootstrap retains |z| > 3 in 100% of replicates
+   under literature-derived bioturbation + seasonal-bias perturbation.
+   FDR-corrected q-values across all four windows are 0.
+5. **Three of four Caesar 2021 multi-proxy records confirm** modern
+   as unprecedented at |z| > 3 (Thornalley Tsub 19.7, Rahmstorf
+   22.1, Spooner 4.8); the Thornalley sortable-silt mismatch is
+   explained as a depth-mismatch artefact.
+6. **Internal variability cannot explain the modern rate** —
+   detection-and-attribution against ~3,500 piControl-years from
+   seven CMIP6 models shows the observed rate exceeds the entire
+   piControl null distribution at < 1%.
+7. **CMIP6 emergent-constraint subset** — the three models matching
    the observed historical Cold-Blob trend project less aggressive
    widening than the full ensemble; the observed rate exceeds any
    CMIP6 subset projection through 2100. The unprecedented claim is
@@ -79,8 +94,17 @@ python dcps/scripts/cmip6_emergent_constraint.py     # ~seconds
 python dcps/scripts/make_envelope_figure.py          # ~seconds
 python dcps/scripts/make_wow_figure.py               # ~seconds
 
-# 5. Build the manuscript
-cd manuscript && make all
+# Revision-stage pre-registered analyses
+python dcps/scripts/eke_quiescence_eddy_resolving.py # ~10 min (GLORYS12 1/12° NA)
+python dcps/scripts/nao_phase_regression.py          # ~5 min (downloads NAO/AMO)
+python dcps/scripts/cmip6_picontrol_dna.py           # ~30 min (Pangeo piControl)
+python dcps/scripts/cold_blob_unprecedented_bootstrap.py  # ~seconds (B=1000)
+python dcps/scripts/bandpass_sensitivity.py          # ~30 min (3x3 sweep)
+python dcps/scripts/pre_argo_diagnosis.py            # ~30 min (6 basin runs)
+python dcps/scripts/wavelet_phase_validation.py      # ~30 min (Morlet cross-check)
+
+# 5. Build the manuscript and SI
+cd manuscript && make all && make si
 ```
 
 ## Data dependencies

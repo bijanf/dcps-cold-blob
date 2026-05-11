@@ -35,6 +35,7 @@ dcps/figures/
 data/external/hadisst/
 data/external/palmod_130k/lipd_unzipped/
 data/external/palmod_130k/PalMod2_0_0.zip
+data/external/atmospheric/
 
 # Editor / OS artifacts
 .DS_Store
