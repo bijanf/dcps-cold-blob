@@ -45,7 +45,8 @@ from multi_basin_quiescence import (
 OUT_DIR = CACHE_DIR / "bandpass_sensitivity"
 MANUSCRIPT_FIGS = PKG_ROOT.parent / "manuscript" / "figs"
 
-BANDPASSES = [(0.5, 15.0), (1.0, 10.0), (2.0, 20.0)]
+BANDPASSES = [(0.5, 15.0), (1.0, 10.0), (2.0, 20.0),
+              (3.0, 10.0), (5.0, 10.0)]   # MAJOR 12 additions
 
 
 def preprocess_anomaly_band(da, lo_yr, hi_yr, order=4):
