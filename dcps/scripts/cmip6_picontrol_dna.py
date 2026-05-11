@@ -206,7 +206,7 @@ def main():
     ax.legend(loc="upper left")
     ax.text(0.04, 0.86,
               f"n = {n_total} piControl windows from {len(per_model)} models\n"
-              f"Fraction $\\le$ observed: {100*frac:.3f}%",
+              f"Fraction $\\leq$ observed: {100*frac:.3f}%",
               transform=ax.transAxes, fontsize=9,
               bbox=dict(boxstyle="round,pad=0.3", facecolor="white"))
     out_fig = Path("/home/bijanf/Documents/NEW_Theory/manuscript/figs/fig_picontrol_dna.pdf")

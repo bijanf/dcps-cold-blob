@@ -50,10 +50,14 @@ private working copy.
    as unprecedented at |z| > 3 (Thornalley Tsub 19.7, Rahmstorf
    22.1, Spooner 4.8); the Thornalley sortable-silt mismatch is
    explained as a depth-mismatch artefact.
-6. **Internal variability cannot explain the modern rate** —
-   detection-and-attribution against ~3,500 piControl-years from
-   seven CMIP6 models shows the observed rate exceeds the entire
-   piControl null distribution at < 1%.
+6. **Pre-registered piControl detection-and-attribution test fails** —
+   11.4% of 498 piControl 100-yr windows across 8 CMIP6 models
+   (~3,300 piControl-years) match or exceed the observed
+   −0.50 °C/century rate; the < 1% threshold is not met. Per-model
+   exceedance is 0–41%, dominated by CMCC-CM2-SR5 (high subpolar
+   variance). The unprecedented claim is anchored in proxy evidence
+   rather than CMIP6, reflecting the known CMIP6 spread in subpolar
+   Atlantic decadal variability.
 7. **CMIP6 emergent-constraint subset** — the three models matching
    the observed historical Cold-Blob trend project less aggressive
    widening than the full ensemble; the observed rate exceeds any
