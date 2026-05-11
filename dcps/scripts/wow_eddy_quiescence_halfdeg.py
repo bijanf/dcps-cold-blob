@@ -251,31 +251,34 @@ def main():
     LAT = eke_target["lat"].values
     LON = eke_target["lon"].values
 
+    # Common valid-data mask: a cell is shown only where BOTH EKE and
+    # r_loc have valid values.  This makes the "no-data" areas
+    # (continents + equatorial band + masked edges) identical in the
+    # two spatial panels.
+    eke_v = eke_target.values.copy()
+    R = rl_mean.values.copy()
+    common_valid = np.isfinite(eke_v) & np.isfinite(R)
+    eke_v[~common_valid] = np.nan
+    R[~common_valid] = np.nan
+
+    extent = [LON.min() - TARGET_DEG/2, LON.max() + TARGET_DEG/2,
+              LAT.min() - TARGET_DEG/2, LAT.max() + TARGET_DEG/2]
+
     # Panel a: 1/2 deg EKE
-    eke_v = eke_target.values
     eke_lo = max(np.nanpercentile(eke_v, 5), 1e-4)
     eke_hi = np.nanpercentile(eke_v, 99)
     im_eke = ax_eke.imshow(
-        eke_v,
-        extent=[LON.min() - TARGET_DEG/2, LON.max() + TARGET_DEG/2,
-                LAT.min() - TARGET_DEG/2, LAT.max() + TARGET_DEG/2],
+        eke_v, extent=extent,
         origin="lower", aspect="auto",
         cmap="inferno", norm=LogNorm(vmin=eke_lo, vmax=eke_hi),
         interpolation="bilinear", rasterized=True,
     )
     fig.colorbar(im_eke, cax=cax_eke,
                     label="Geostrophic EKE (m$^{2}$/s$^{2}$)")
-    cb_box_a = Rectangle((-50, 45), width=35, height=15, linewidth=2.5,
+    cb_box_a = Rectangle((-50, 45), width=35, height=15, linewidth=2.0,
                             edgecolor="white", facecolor="none",
                             linestyle="--", zorder=10)
     ax_eke.add_patch(cb_box_a)
-    ax_eke.text(-49, 61, "Cold Blob box",
-                  color="white", fontsize=10, fontweight="bold")
-    ax_eke.annotate("Gulf Stream + NAC:\nhigh EKE corridor",
-                       xy=(-58, 40), xytext=(-78, 14),
-                       color="white", fontsize=10, fontweight="bold",
-                       arrowprops=dict(arrowstyle="->", color="white",
-                                          lw=2.0))
     ax_eke.set_xlabel("Longitude")
     ax_eke.set_ylabel("Latitude")
     ax_eke.set_xlim(-80, 0)
@@ -284,28 +287,18 @@ def main():
                   fontweight="bold", fontsize=14)
 
     # Panel b: 1/2 deg r_loc
-    R = rl_mean.values
     im_rl = ax_rl.imshow(
-        R,
-        extent=[LON.min() - TARGET_DEG/2, LON.max() + TARGET_DEG/2,
-                LAT.min() - TARGET_DEG/2, LAT.max() + TARGET_DEG/2],
+        R, extent=extent,
         origin="lower", aspect="auto",
         cmap="viridis", interpolation="bilinear", rasterized=True,
         vmin=np.nanpercentile(R, 3), vmax=np.nanpercentile(R, 97),
     )
     fig.colorbar(im_rl, cax=cax_rl,
                     label=r"$\langle r_{\mathrm{loc}}\rangle_t$  (phase coherence)")
-    cb_box_b = Rectangle((-50, 45), width=35, height=15, linewidth=2.5,
-                            edgecolor="red", facecolor="none",
+    cb_box_b = Rectangle((-50, 45), width=35, height=15, linewidth=2.0,
+                            edgecolor="white", facecolor="none",
                             linestyle="--", zorder=10)
     ax_rl.add_patch(cb_box_b)
-    ax_rl.text(-49, 61, "Cold Blob box",
-                  color="red", fontsize=10, fontweight="bold")
-    ax_rl.annotate("Cold Blob:\nhigh coherence",
-                       xy=(-32, 55), xytext=(-78, 12),
-                       color="white", fontsize=10, fontweight="bold",
-                       arrowprops=dict(arrowstyle="->", color="white",
-                                          lw=2.0))
     ax_rl.set_xlabel("Longitude")
     ax_rl.set_ylabel("Latitude")
     ax_rl.set_xlim(-80, 0)
@@ -329,9 +322,8 @@ def main():
     ax_sc.set_ylabel(r"$\langle r_{\mathrm{loc}}\rangle_t$  ("
                         f"1/{int(1/TARGET_DEG)}$^{{\\circ}}$)")
     ax_sc.text(0.04, 0.96,
-                  f"$\\rho = {rho:+.3f}$\n$n = {n}$ cells\n"
-                  f"({TARGET_DEG}$^{{\\circ}}$ matched-resolution)",
-                  transform=ax_sc.transAxes, fontsize=9, va="top",
+                  f"$\\rho = {rho:+.3f}$\n$n = {n}$",
+                  transform=ax_sc.transAxes, fontsize=10, va="top",
                   bbox=dict(boxstyle="round,pad=0.4",
                               facecolor="white", edgecolor="0.5"))
     ax_sc.text(-0.18, 1.02, "c", transform=ax_sc.transAxes,
