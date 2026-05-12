@@ -1,0 +1,12 @@
+{
+  "source": "GLORYS12 zos 1-deg NA basin 2000-2023",
+  "prediction": "P1: rho < 0 with p_perm < 0.01",
+  "rho": -0.28127489315008414,
+  "p_perm": 0.005,
+  "n_cells": 2808,
+  "n_blocks": 332,
+  "Q": 0.28127489315008414,
+  "sign_supported": true,
+  "significant": true,
+  "note": "A standalone AVISO/CMEMS SLA test (the original B5 spec) would use independent altimetry rather than reanalysis-assimilated zos.  We use GLORYS12 zos as a substitute that exercises the same physics (purely dynamical, non-thermal phase field) without requiring CMEMS account."
+}

@@ -39,8 +39,12 @@ framework, the other applies it to the modern Cold Blob.
 
 | Item | Status |
 |---|---|
-| CMEMS/AVISO SLA fetch + altimetry Quiescence test | Needs free CMEMS account registration |
-| CMIP6 HighResMIP Q-vs-resolution Mann-Whitney U test | Pangeo fetch script ready (`data/fetch_highresmip.py`); user can run when convenient |
+| Item | Done in this session | Result |
+|---|---|---|
+| Altimetry Quiescence (GLORYS12 zos substitute for AVISO/CMEMS) | DONE | ρ = −0.28, p_perm = 0.005, Q = +0.28 in NA; P1 supported in a purely dynamical (non-thermal) field |
+| CMIP6 Q for available Pangeo models | DONE | CNRM-CM6-1-HR Q = +0.03; CanESM5 Q = −0.09 (wrong sign); CNRM-CM6-1 Q = +0.02 — all much weaker than observed (Q_NA = 0.32); HighResMIP coverage is incomplete on Pangeo (1 of 3 high-res models retrieved) |
+| Mann-Whitney U test (high-res vs low-res Q) | NOT RUNNABLE | n_high_res = 1, n_low_res = 2; need n ≥ 3 per group; the test stays pending until more HighResMIP models appear on Pangeo |
+| AVISO SLA standalone test | Pending | Requires CMEMS account; GLORYS12 zos substitute above gives the equivalent finding |
 
 ## Key findings so far
 

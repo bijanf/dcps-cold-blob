@@ -1,0 +1,30 @@
+{
+  "Q_per_model": {
+    "high_res": {
+      "CNRM-CM6-1-HR": {
+        "rho": -0.024862285178252654,
+        "p": 3.420583859641335e-13,
+        "n_cells": 85638,
+        "Q": 0.024862285178252654
+      }
+    },
+    "low_res": {
+      "CanESM5": {
+        "rho": 0.09227702302777585,
+        "p": 2.7383681756034104e-12,
+        "n_cells": 5717,
+        "Q": -0.09227702302777585
+      },
+      "CNRM-CM6-1": {
+        "rho": -0.01925940669804053,
+        "p": 0.20963572580866208,
+        "n_cells": 4245,
+        "Q": 0.01925940669804053
+      }
+    }
+  },
+  "n_high_res": 1,
+  "n_low_res": 2,
+  "mann_whitney_runnable": true,
+  "note": "HighResMIP hist-1950 experiment_id is not yet on Pangeo for the requested high-res models (EC-Earth3P-HR, HadGEM3-GC31-HM, CNRM-CM6-1-HR). The test reports Q for the available low-res models and acknowledges the high-res gap."
+}
