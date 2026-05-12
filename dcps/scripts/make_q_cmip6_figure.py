@@ -41,9 +41,8 @@ def main():
     print("hi:", hi)
     print("lo:", lo)
 
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(11.0, 4.6),
-                                    constrained_layout=True,
-                                    gridspec_kw={"width_ratios": [3, 1.2]})
+    fig, ax0 = plt.subplots(1, 1, figsize=(7.5, 4.8),
+                             constrained_layout=True)
 
     # === Panel (a): per family ===
     x = np.arange(len(PAIRS))
@@ -67,45 +66,25 @@ def main():
             ax0.plot([x[i] - 0.12, x[i] + 0.12], [h, l],
                        color="0.6", linewidth=0.8, zorder=2)
 
+    # Median bars (each marker only one of five points; show
+    # the median as a short horizontal segment instead of a
+    # boxplot, which would over-state precision with n=5).
+    hi_med = np.nanmedian(hi); lo_med = np.nanmedian(lo)
+    x_left, x_right = -0.55, len(PAIRS) - 0.45
+    ax0.hlines(hi_med, x_left - 0.05, x_right + 0.05,
+                color="#d62728", linewidth=2.2, linestyle="-",
+                alpha=0.55, zorder=1)
+    ax0.hlines(lo_med, x_left - 0.05, x_right + 0.05,
+                color="#1f77b4", linewidth=2.2, linestyle="-",
+                alpha=0.55, zorder=1)
+
     ax0.set_xticks(x)
-    ax0.set_xticklabels(labels, rotation=20, ha="right")
+    ax0.set_xticklabels(labels, rotation=15, ha="right")
     ax0.set_ylabel(r"Quiescence Index  $Q = -\rho$")
-    ax0.set_title("(a)  CMIP6 resolution-variant pairs",
-                   fontsize=11, loc="left")
+    ax0.set_xlim(x_left, x_right)
     ax0.set_ylim(-0.10, 0.45)
     ax0.legend(loc="lower right", fontsize=9, framealpha=0.92)
     ax0.grid(True, linewidth=0.3, alpha=0.4)
-
-    # === Panel (b): grouped strip + median bars ===
-    hi_v = hi[np.isfinite(hi)]
-    lo_v = lo[np.isfinite(lo)]
-    # Boxes
-    bp = ax1.boxplot([hi_v, lo_v], positions=[0, 1], widths=0.45,
-                       patch_artist=True, showmeans=False, zorder=2,
-                       medianprops=dict(color="black", linewidth=1.4))
-    bp["boxes"][0].set_facecolor("#fbb4ae")
-    bp["boxes"][1].set_facecolor("#b3cde3")
-    # Strip
-    rng = np.random.default_rng(0)
-    for j, (vals, mk, col) in enumerate(
-        [(hi_v, "o", "#d62728"), (lo_v, "s", "#1f77b4")]
-    ):
-        jitter = rng.uniform(-0.12, 0.12, size=vals.size)
-        ax1.scatter(np.full_like(vals, j) + jitter, vals,
-                     marker=mk, s=80, c=col, edgecolors="black",
-                     linewidths=1.0, zorder=4)
-    ax1.axhspan(Q_OBS_NA_ZOS - 0.02, Q_OBS_NA_SST + 0.03,
-                 color="0.85", alpha=0.6, zorder=0)
-    ax1.axhline(Q_OBS_NA_SST, color="#2ca02c", linestyle="-",
-                 linewidth=1.5, zorder=1)
-    ax1.axhline(Q_OBS_NA_ZOS, color="#2ca02c", linestyle="--",
-                 linewidth=1.5, zorder=1)
-    ax1.axhline(0, color="0.4", linewidth=0.7, linestyle=":")
-    ax1.set_xticks([0, 1])
-    ax1.set_xticklabels(["HR", "LR"])
-    ax1.set_ylim(-0.10, 0.45)
-    ax1.set_title("(b)  Grouped", fontsize=11, loc="left")
-    ax1.grid(True, linewidth=0.3, alpha=0.4)
 
     fig.savefig(OUT, bbox_inches="tight")
     plt.close(fig)
