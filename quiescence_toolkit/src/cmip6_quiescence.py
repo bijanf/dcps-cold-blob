@@ -1,11 +1,19 @@
 """Step 3 / B3: Compute Quiescence Index Q from CMIP6 historical
-tos for whatever models the Pangeo fetch returned.
+tos and run Mann-Whitney U on resolution-variant model pairs.
 
-The original spec was: high-res group (EC-Earth3P-HR, HadGEM3-GC31-HM,
-CNRM-CM6-1-HR) vs low-res group (CanESM5, CNRM-CM6-1, IPSL-CM6A-LR),
-Mann-Whitney U on Q.  Pangeo coverage of HighResMIP is incomplete;
-the fetch returned only the two low-res models (CanESM5, CNRM-CM6-1).
-We compute Q for each and report the gap honestly.
+HighResMIP itself is not on Pangeo (0 tos rows).  We substitute
+CMIP6 model families that ship in HR + LR variants on the same
+catalogue, which exercises the same resolution-dependence physics
+(eddy-permitting vs eddy-parameterised mesoscale):
+
+  CESM2 (~1deg)        vs  CESM2-FV2 (~2deg)
+  HadGEM3-GC31-MM      vs  HadGEM3-GC31-LL
+  NorESM2-MM           vs  NorESM2-LM
+  CNRM-CM6-1-HR        vs  CNRM-CM6-1
+  MPI-ESM1-2-HR        vs  MPI-ESM1-2-LR
+
+5 + 5 models, n=5 per group is the smallest sample for which
+Mann-Whitney U on a one-sided alternative can return p < 0.01.
 """
 from __future__ import annotations
 
@@ -89,7 +97,7 @@ def compute_Q_from_tos_annual(tos_da):
 
 
 def main():
-    inventory_file = CACHE / "highresmip_inventory.json"
+    inventory_file = CACHE / "resolution_pairs_inventory.json"
     if not inventory_file.exists():
         print(f"No inventory at {inventory_file}; fetch first.")
         return
@@ -133,16 +141,41 @@ def main():
         print(f"  resolution-dependence test cannot be run as specified.")
         print(f"  P3 (resolution dependence) remains pending.")
 
+    if hi_Q and lo_Q:
+        from scipy.stats import mannwhitneyu
+        u_stat, u_p_less = mannwhitneyu(hi_Q, lo_Q, alternative="less")
+        u_stat, u_p_two = mannwhitneyu(hi_Q, lo_Q, alternative="two-sided")
+        median_hi = float(np.median(hi_Q))
+        median_lo = float(np.median(lo_Q))
+        gap = median_hi - median_lo
+        print()
+        print(f"  median(hi) - median(lo) = {gap:+.3f}")
+        print(f"  decision rule (P3): gap < -0.1 AND p_less < 0.05 ?")
+        decision = "supported" if (gap < -0.1 and u_p_less < 0.05) else "not supported"
+        print(f"  P3 {decision}")
+    else:
+        u_stat = float("nan"); u_p_less = float("nan"); u_p_two = float("nan")
+        median_hi = float("nan"); median_lo = float("nan"); gap = float("nan")
+        decision = "not runnable"
+
     summary = dict(
         Q_per_model=Q_table,
         n_high_res=len(hi_Q),
         n_low_res=len(lo_Q),
         mann_whitney_runnable=bool(hi_Q and lo_Q),
-        note=("HighResMIP hist-1950 experiment_id is not yet on Pangeo "
-              "for the requested high-res models (EC-Earth3P-HR, "
-              "HadGEM3-GC31-HM, CNRM-CM6-1-HR). The test reports Q "
-              "for the available low-res models and acknowledges the "
-              "high-res gap."),
+        median_high_res=median_hi,
+        median_low_res=median_lo,
+        median_gap=gap,
+        U_stat=float(u_stat) if not np.isnan(u_stat) else None,
+        p_one_sided_less=float(u_p_less) if not np.isnan(u_p_less) else None,
+        p_two_sided=float(u_p_two) if not np.isnan(u_p_two) else None,
+        P3_decision=decision,
+        note=("HighResMIP hist-1950 is not on Pangeo (0 tos rows). "
+              "Substituted CMIP6 resolution-variant pairs from the "
+              "same five model families: CESM2/CESM2-FV2, HadGEM3-MM/LL, "
+              "NorESM2-MM/LM, CNRM-CM6-1-HR/CNRM-CM6-1, MPI-ESM1-2-HR/LR. "
+              "This exercises the same eddy-permitting vs "
+              "eddy-parameterised physics that P3 predicts."),
     )
     with open(OUT_DIR / "cmip6_quiescence.json", "w") as f:
         json.dump(summary, f, indent=2)

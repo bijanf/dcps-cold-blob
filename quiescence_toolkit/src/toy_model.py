@@ -32,10 +32,10 @@ from scipy.stats import pearsonr
 
 
 L_KM = 4000.0
-N = 100
+N = 500              # more oscillators -> more robust estimate
 DX_KM = L_KM / N
 SIGMA_J_KM = 200.0
-K_DEFAULT = 0.5
+K_DEFAULT = 0.2      # weak coupling, where Fokker-Planck applies
 U0_DEFAULT = 1.0
 SIGMA_OMEGA = 0.2
 DT = 0.05
@@ -43,6 +43,7 @@ N_STEPS = 100_000
 N_BURN = 20_000
 WIN_KM = 500.0
 WIN_CELLS = max(1, int(round(WIN_KM / DX_KM)))
+N_SEEDS = 10         # seed-average for robust reference rho
 
 
 def jet_profile(x_km, U0=U0_DEFAULT, sigma_J_km=SIGMA_J_KM):
@@ -54,11 +55,15 @@ def jet_profile(x_km, U0=U0_DEFAULT, sigma_J_km=SIGMA_J_KM):
 
 
 def noise_amplitude(x_km, U0=U0_DEFAULT, sigma_J_km=SIGMA_J_KM, alpha=1.0):
-    """D(x) = alpha |dU/dx| analytically differentiated."""
+    """D(x) = alpha |dU/dx| normalised so alpha * max(|dU/dx|) = 1
+    (matching the user-guide spec).  U0 then drops out of D's
+    spatial shape; the parameter sweep over U0 is therefore a
+    trivial identity unless we let U0 affect K/D coupling -- which
+    we don't in this minimal implementation."""
     L = L_KM
     x_wrap = ((x_km + L / 2) % L) - L / 2
     dUdx = -U0 * x_wrap / (sigma_J_km ** 2) * np.exp(-x_wrap ** 2 / (2 * sigma_J_km ** 2))
-    return alpha * np.abs(dUdx) / np.max(np.abs(dUdx))   # normalised to [0,1]
+    return alpha * np.abs(dUdx) / np.max(np.abs(dUdx))
 
 
 def integrate(K=K_DEFAULT, U0=U0_DEFAULT, n_steps=N_STEPS,
@@ -111,12 +116,25 @@ def main():
           f"U_0 = {U0_DEFAULT}, sigma_J = {SIGMA_J_KM:.0f} km")
     print("=" * 70)
 
-    # Reference run
-    x, omega, D, U, r = integrate(K=K_DEFAULT, U0=U0_DEFAULT)
-    rho_U, p_U = pearsonr(r, U)
-    rho_D, p_D = pearsonr(r, D)
-    print(f"  reference: rho(<r>, U) = {rho_U:+.3f}  p = {p_U:.2e}")
-    print(f"  reference: rho(<r>, D) = {rho_D:+.3f}  p = {p_D:.2e}")
+    # Reference run: seed-average for robust estimate
+    rho_U_seeds = []
+    rho_D_seeds = []
+    last_x = None; last_U = None; last_D = None; last_r = None
+    for s in range(N_SEEDS):
+        x, omega, D, U, r = integrate(K=K_DEFAULT, U0=U0_DEFAULT, seed=s)
+        rho_U_seeds.append(pearsonr(r, U)[0])
+        rho_D_seeds.append(pearsonr(r, D)[0])
+        last_x, last_U, last_D, last_r = x, U, D, r
+    x, U, D, r = last_x, last_U, last_D, last_r
+    rho_U = float(np.mean(rho_U_seeds))
+    rho_D = float(np.mean(rho_D_seeds))
+    rho_U_sd = float(np.std(rho_U_seeds))
+    rho_D_sd = float(np.std(rho_D_seeds))
+    p_U = float(np.nan); p_D = float(np.nan)
+    print(f"  reference ({N_SEEDS}-seed avg): rho(<r>, U) = {rho_U:+.3f} "
+          f"+/- {rho_U_sd:.3f}")
+    print(f"  reference ({N_SEEDS}-seed avg): rho(<r>, D) = {rho_D:+.3f} "
+          f"+/- {rho_D_sd:.3f}")
 
     # Parameter sweep
     K_grid = np.linspace(0.2, 1.0, 5)

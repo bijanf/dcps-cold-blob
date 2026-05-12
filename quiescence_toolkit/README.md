@@ -42,8 +42,8 @@ framework, the other applies it to the modern Cold Blob.
 | Item | Done in this session | Result |
 |---|---|---|
 | Altimetry Quiescence (GLORYS12 zos substitute for AVISO/CMEMS) | DONE | ρ = −0.28, p_perm = 0.005, Q = +0.28 in NA; P1 supported in a purely dynamical (non-thermal) field |
-| CMIP6 Q for available Pangeo models | DONE | CNRM-CM6-1-HR Q = +0.03; CanESM5 Q = −0.09 (wrong sign); CNRM-CM6-1 Q = +0.02 — all much weaker than observed (Q_NA = 0.32); HighResMIP coverage is incomplete on Pangeo (1 of 3 high-res models retrieved) |
-| Mann-Whitney U test (high-res vs low-res Q) | NOT RUNNABLE | n_high_res = 1, n_low_res = 2; need n ≥ 3 per group; the test stays pending until more HighResMIP models appear on Pangeo |
+| CMIP6 Q for resolution-variant pairs (HighResMIP substitute) | DONE | 5 high-res (CESM2, HadGEM3-MM, NorESM2-MM, CNRM-CM6-1-HR, MPI-ESM1-2-HR) + 5 low-res (CESM2-FV2, HadGEM3-LL, NorESM2-LM, CNRM-CM6-1, MPI-ESM1-2-LR). Median Q: 0.133 (HR) vs 0.070 (LR). All CMIP6 Q values are 2–5× weaker than observed Q_NA = 0.32. |
+| Mann-Whitney U test (HR vs LR Q) | DONE | U = 13, p_one-sided = 0.579, gap = +0.064 (wrong sign). **P3 falsified on this dataset.** |
 | AVISO SLA standalone test | Pending | Requires CMEMS account; GLORYS12 zos substitute above gives the equivalent finding |
 
 ## Key findings so far
@@ -60,6 +60,13 @@ framework, the other applies it to the modern Cold Blob.
 4. **Temporal predictions falsified.** The originally pre-registered
    `ρ(R(t), −dΨ/dt) ≤ −0.4` is not supported by RAPID-era data;
    the framework is re-formulated around frequency detuning.
+5. **P3 resolution dependence falsified on CMIP6 resolution-variant
+   pairs.** 5 HR + 5 LR (HadGEM3-MM/LL, NorESM2-MM/LM, CESM2/FV2,
+   CNRM-CM6-1-HR/CNRM-CM6-1, MPI-ESM1-2-HR/LR). Median Q gap
+   = +0.064 (wrong sign); Mann-Whitney U p = 0.579. The within-
+   product GLORYS12 coarsening sweep still shows the predicted
+   decline, so the falsification is specific to CMIP6
+   resolution-variant pairs and is reported honestly.
 
 ## Reproducing the current results
 
