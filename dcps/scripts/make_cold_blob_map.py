@@ -96,15 +96,13 @@ def main():
 
     if HAS_CARTOPY:
         proj = ccrs.PlateCarree()
-        fig, axes = plt.subplots(1, 2, figsize=(11.5, 5.0),
-                                 subplot_kw={"projection": proj},
-                                 constrained_layout=True)
+        fig, ax = plt.subplots(1, 1, figsize=(7.5, 6.5),
+                                subplot_kw={"projection": proj},
+                                constrained_layout=True)
     else:
-        fig, axes = plt.subplots(1, 2, figsize=(11.5, 5.0),
-                                 constrained_layout=True)
+        fig, ax = plt.subplots(1, 1, figsize=(7.5, 6.5),
+                                constrained_layout=True)
 
-    # === Panel (a): HadISST trend map ===
-    ax = axes[0]
     vmax = 2.5  # K/century, symmetric
     if HAS_CARTOPY:
         im = ax.pcolormesh(trend.longitude, trend.latitude, trend.values,
@@ -122,55 +120,35 @@ def main():
                            shading="auto")
         ax.set_xlim(LON_W, LON_E); ax.set_ylim(LAT_S, LAT_N)
         ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
-    ax.set_title("(a)  HadISST 1870--2023 SST trend",
-                 fontsize=11, loc="left")
-    cb = fig.colorbar(im, ax=ax, orientation="horizontal",
-                      pad=0.08, shrink=0.85, aspect=30)
-    cb.set_label(r"SST trend  ($^\circ$C per century)")
-    cb.ax.tick_params(labelsize=8)
-
-    # === Panel (b): Proxy sites on the same domain ===
-    ax = axes[1]
-    if HAS_CARTOPY:
-        im2 = ax.pcolormesh(trend.longitude, trend.latitude, trend.values,
-                            cmap="RdBu_r", vmin=-vmax, vmax=vmax,
-                            shading="auto", alpha=0.4, transform=proj)
-        ax.add_feature(cfeature.LAND, facecolor="0.85", zorder=2)
-        ax.add_feature(cfeature.COASTLINE, linewidth=0.5, zorder=3)
-        ax.set_extent([LON_W, LON_E, LAT_S, LAT_N], crs=proj)
-        gl = ax.gridlines(draw_labels=True, linewidth=0.2, color="0.5",
-                          linestyle=":")
-        gl.top_labels = False; gl.right_labels = False
-    else:
-        ax.pcolormesh(trend.longitude, trend.latitude, trend.values,
-                      cmap="RdBu_r", vmin=-vmax, vmax=vmax,
-                      shading="auto", alpha=0.4)
-        ax.set_xlim(LON_W, LON_E); ax.set_ylim(LAT_S, LAT_N)
-        ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
 
     # Plot proxies: marker by depth, color by verdict.
     for (lab, lat, lon, depth, verdict, z) in PROXIES:
         marker = "o" if depth == "surface" else "s"
         face = "#d62728" if verdict == "unprec" else "0.55"
         edge = "black"
-        kw = dict(marker=marker, s=180, c=face, edgecolors=edge,
-                  linewidths=1.5, zorder=5)
+        kw = dict(marker=marker, s=220, c=face, edgecolors=edge,
+                  linewidths=1.8, zorder=5)
         if HAS_CARTOPY:
             ax.scatter(lon, lat, transform=proj, **kw)
         else:
             ax.scatter(lon, lat, **kw)
-    ax.set_title("(b)  Five testable Caesar 2021 proxy sites",
-                 fontsize=11, loc="left")
+
+    cb = fig.colorbar(im, ax=ax, orientation="horizontal",
+                      pad=0.08, shrink=0.85, aspect=30)
+    cb.set_label(r"HadISST 1870--2023 SST trend  "
+                 r"($^\circ$C per century)")
+    cb.ax.tick_params(labelsize=9)
 
     # Legend
     surface_h = plt.Line2D([0], [0], marker="o", color="w",
                             markerfacecolor="#d62728", markeredgecolor="k",
-                            markersize=10, label=r"Surface or thermocline, $|z|>3$")
+                            markersize=11,
+                            label=r"Surface or thermocline, $|z|>3$")
     deep_h = plt.Line2D([0], [0], marker="s", color="w",
                          markerfacecolor="0.55", markeredgecolor="k",
-                         markersize=10, label=r"Deep, within envelope")
-    leg = ax.legend(handles=[surface_h, deep_h], loc="lower right",
-                    fontsize=8, framealpha=0.92)
+                         markersize=11, label=r"Deep, within envelope")
+    ax.legend(handles=[surface_h, deep_h], loc="lower right",
+              fontsize=9, framealpha=0.92)
 
     fig.savefig(OUT, bbox_inches="tight")
     plt.close(fig)
