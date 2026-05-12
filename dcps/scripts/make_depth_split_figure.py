@@ -22,32 +22,43 @@ OUT = (Path(__file__).resolve().parents[2]
 
 
 def main():
-    # Five testable Caesar-2021 proxies:
-    # (name, sampling depth in m, |z|_max, group)
+    # Seven testable proxies: 5 from Caesar 2021 + 2 augmented this
+    # revision (Thibodeau MD99-2220 deep, Moffa-Sanchez RAPiD-35-COM
+    # deep).  (name, sampling depth in m, |z|_max, group).
+    # Augmented proxies use a different marker EDGE color so the
+    # reader can distinguish original from added without text on plot.
     proxies = [
-        ("Thornalley 2018 $T_{\\mathrm{sub}}$",          400.0,  19.7, "surface"),
-        ("Spooner 2020 $T.$ quinqueloba",                100.0,   4.8, "surface"),
-        ("Rahmstorf 2015 multi-proxy AMOC",               50.0,  22.1, "surface"),
-        ("Thornalley 2018 sortable silt",               2000.0,   0.8, "deep"),
-        ("Osmann 2019 MAS productivity",                3500.0,   0.0, "deep"),
+        ("Thornalley 2018 $T_{\\mathrm{sub}}$",          400.0,  19.7, "surface", False),
+        ("Spooner 2020 $T.$ quinqueloba",                100.0,   4.8, "surface", False),
+        ("Rahmstorf 2015 multi-proxy AMOC",               50.0,  22.1, "surface", False),
+        ("Thornalley 2018 sortable silt",               2000.0,   0.8, "deep",    False),
+        ("Osmann 2019 MAS productivity",                3500.0,   0.0, "deep",    False),
+        ("Thibodeau 2018 MD99-2220 $\\delta^{18}$O",    3700.0,   4.65,"deep",    True),
+        ("Moffa-Sanchez 2015 RAPiD-35-COM",             3484.0,   1.15,"deep",    True),
     ]
-    fig, ax = plt.subplots(figsize=(8.5, 5.5), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(9.0, 5.8), constrained_layout=True)
 
-    for name, depth, z, group in proxies:
+    for name, depth, z, group, augmented in proxies:
         color = "crimson" if group == "surface" else "steelblue"
         marker = "o" if group == "surface" else "s"
-        ax.scatter(depth, z, s=220, c=color, marker=marker,
-                      edgecolors="black", linewidths=1.5, zorder=10,
+        # Augmented deep proxies: lighter face + darker edge so they
+        # remain distinguishable without on-plot text.
+        edge = "black"
+        face = color
+        if augmented:
+            face = "lightsteelblue"
+        ax.scatter(depth, z, s=240, c=face, marker=marker,
+                      edgecolors=edge, linewidths=1.8, zorder=10,
                       label=None)
-        # Proxy name as a marker label next to the data point.
-        # Position is chosen so the text never overlaps another
-        # marker or the legend.
+        # Proxy name labels placed manually so nothing overlaps.
         text_x_mult = {
-            "Thornalley 2018 $T_{\\mathrm{sub}}$":         0.55,
-            "Spooner 2020 $T.$ quinqueloba":               1.20,
-            "Rahmstorf 2015 multi-proxy AMOC":             1.20,
-            "Thornalley 2018 sortable silt":               0.55,
-            "Osmann 2019 MAS productivity":                0.55,
+            "Thornalley 2018 $T_{\\mathrm{sub}}$":          0.55,
+            "Spooner 2020 $T.$ quinqueloba":                1.20,
+            "Rahmstorf 2015 multi-proxy AMOC":              1.20,
+            "Thornalley 2018 sortable silt":                0.55,
+            "Osmann 2019 MAS productivity":                 0.55,
+            "Thibodeau 2018 MD99-2220 $\\delta^{18}$O":     1.20,
+            "Moffa-Sanchez 2015 RAPiD-35-COM":              1.20,
         }[name]
         text_y_off = {
             "Thornalley 2018 $T_{\\mathrm{sub}}$":          0.0,
@@ -55,11 +66,13 @@ def main():
             "Rahmstorf 2015 multi-proxy AMOC":              0.0,
             "Thornalley 2018 sortable silt":               +0.8,
             "Osmann 2019 MAS productivity":                +0.8,
+            "Thibodeau 2018 MD99-2220 $\\delta^{18}$O":     0.0,
+            "Moffa-Sanchez 2015 RAPiD-35-COM":              0.0,
         }[name]
         ha = "left" if text_x_mult > 1.0 else "right"
         ax.annotate(name, xy=(depth, z),
                         xytext=(depth * text_x_mult, z + text_y_off),
-                        fontsize=10, ha=ha, va="center")
+                        fontsize=9.5, ha=ha, va="center")
 
     # |z|=3 threshold dashed line
     ax.axhline(3.0, color="black", linestyle="--", linewidth=1.5,
@@ -78,10 +91,14 @@ def main():
     legend_elements = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor="crimson",
                   markeredgecolor="black", markersize=12,
-                  label="Surface / thermocline"),
+                  label="Surface / thermocline (Caesar 2021)"),
         Line2D([0], [0], marker="s", color="w", markerfacecolor="steelblue",
                   markeredgecolor="black", markersize=12,
-                  label="Deep / abyssal"),
+                  label="Deep / abyssal (Caesar 2021)"),
+        Line2D([0], [0], marker="s", color="w",
+                  markerfacecolor="lightsteelblue",
+                  markeredgecolor="black", markersize=12,
+                  label="Deep / abyssal (augmented this revision)"),
     ]
     ax.legend(handles=legend_elements, loc="center right", fontsize=10,
                   framealpha=0.95)

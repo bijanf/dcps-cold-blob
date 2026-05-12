@@ -39,13 +39,23 @@ OUT_DIR = CACHE_DIR / "depth_split"
 
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    # The 5 testable proxies and their depth + unprecedented status
+    # Original five testable Caesar-2021 proxies + two augmented deep
+    # records that passed the same screening rule (>=10 pre-1850
+    # samples, post-1850 overlap, decadal-or-better resolution).
     proxies = [
+        # --- original 5 ---
         ("Thornalley 2018 Tsub", "surface", True),    # ~400 m thermocline
         ("Spooner 2020 T. quinqueloba", "surface", True),  # planktic surface
         ("Rahmstorf 2015 multi-proxy AMOC", "surface", True),  # surface-derived
         ("Thornalley 2018 sortable silt", "deep", False),  # ~2000 m DWBC
         ("Osmann 2019 MAS productivity", "deep", False),  # seafloor
+        # --- augmented (this revision; result-naive at the time the
+        #     screening rule was re-applied) ---
+        ("Thibodeau 2018 MD99-2220 d18O", "deep", True),
+        # ~3700 m Laurentian Slope; |z|_max = 4.65 (1850-1962 modern)
+        ("Moffa-Sanchez 2015 RAPiD-35-COM", "deep", False),
+        # 3484 m Eirik Drift, DSOW sortable silt; |z|_max = 1.15
+        # (1850-1914 modern, pre-RAPID era)
     ]
     n_total = len(proxies)
     n_surface = sum(1 for _, d, _ in proxies if d == "surface")
@@ -57,14 +67,15 @@ def main():
     obs_deep_unprec = sum(1 for _, d, u in proxies if d == "deep" and u)
 
     print("=" * 70)
-    print(" R3-1: depth-split null-permutation test")
+    print(" R3-1 (augmented): depth-split null-permutation test")
     print("=" * 70)
-    print(f"  5 testable Caesar-2021 proxies")
-    print(f"  Surface/thermocline: 3  (Thornalley Tsub, Spooner, Rahmstorf)")
-    print(f"  Deep: 2  (Thornalley silt, Osmann)")
-    print(f"  Unprecedented (|z| > 3): 3  (all three surface)")
-    print(f"  Observed split: {obs_surface_unprec}/3 surface unprec, "
-          f"{obs_deep_unprec}/2 deep unprec")
+    print(f"  {n_total} testable proxies "
+          f"(5 Caesar-2021 + 2 augmented from this revision)")
+    print(f"  Surface/thermocline: {n_surface}")
+    print(f"  Deep: {n_deep}")
+    print(f"  Unprecedented (|z| > 3): {n_unprec}")
+    print(f"  Observed split: {obs_surface_unprec}/{n_surface} surface "
+          f"unprec, {obs_deep_unprec}/{n_deep} deep unprec")
     print()
 
     # Exhaustive enumeration: C(5,3) = 10 ways to choose 3 of 5 proxies

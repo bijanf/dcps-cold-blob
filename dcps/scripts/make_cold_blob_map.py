@@ -39,17 +39,20 @@ LAT_S, LAT_N = 0.0, 75.0
 LON_W, LON_E = -80.0, 0.0
 
 # Proxy sites: (label, lat, lon, depth_class, verdict, z_score)
-# Coordinates are approximate, drawn from Caesar 2021 source publications.
-# Thornalley 2018 T_sub and sortable silt are from the SAME parent core
-# RAPID-12-1K but at different depth horizons; we offset the markers
-# visually so both are distinguishable.  Osmann 2019 MAS is from western
-# North Atlantic abyssal sediment cores (Bermuda Rise region).
+# Coordinates from Caesar 2021 source publications + the two augmented
+# deep records added in this revision (Thibodeau MD99-2220 in the
+# Laurentian Slope, Moffa-Sanchez RAPiD-35-COM on the Eirik Drift).
+# Thornalley T_sub and sortable silt share parent core RAPID-12-1K and
+# are offset visually so both are distinguishable.
 PROXIES = [
-    ("Thornalley T_sub",      58.5, -27.0, "surface", "unprec",  19.7),
-    ("Spooner T. quinqueloba",58.5, -22.5, "surface", "unprec",   4.8),
-    ("Rahmstorf AMOC index",  53.5, -33.0, "surface", "unprec",  22.1),
-    ("Thornalley silt",       57.0, -29.5, "deep",    "envelope", 0.8),
-    ("Osmann MAS",            33.5, -62.0, "deep",    "envelope", 0.0),
+    ("Thornalley T_sub",       58.5, -27.0, "surface", "unprec",  19.7),
+    ("Spooner T. quinqueloba", 58.5, -22.5, "surface", "unprec",   4.8),
+    ("Rahmstorf AMOC index",   53.5, -33.0, "surface", "unprec",  22.1),
+    ("Thornalley silt",        57.0, -29.5, "deep",    "envelope", 0.8),
+    ("Osmann MAS",             33.5, -62.0, "deep",    "envelope", 0.0),
+    # Augmented this revision
+    ("Thibodeau MD99-2220",    44.0, -55.0, "deep",    "unprec",   4.65),
+    ("Moffa-Sanchez RAPiD-35", 57.5, -48.7, "deep",    "envelope", 1.15),
 ]
 
 
