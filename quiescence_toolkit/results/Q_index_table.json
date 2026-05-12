@@ -1,0 +1,63 @@
+{
+  "published_baseline": {
+    "atlantic": {
+      "Q": 0.31505438685417175,
+      "p_published": 6.925614035509368e-27,
+      "n_cells": 1105,
+      "verdict": "SUPPORTED"
+    },
+    "pacific": {
+      "Q": 0.3452013432979584,
+      "p_published": 1.961817850054744e-44,
+      "n_cells": 1544,
+      "verdict": "SUPPORTED"
+    },
+    "southern": {
+      "Q": 0.4566679000854492,
+      "p_published": 7.477328605637224e-42,
+      "n_cells": 788,
+      "verdict": "SUPPORTED"
+    }
+  },
+  "spatial_permutation": {
+    "atlantic": {
+      "basin": "atlantic",
+      "rho_observed": -0.31505438896753357,
+      "p_perm": 0.002,
+      "n_cells": 1105,
+      "n_blocks_500km": 476,
+      "morans_i_r_loc": 0.9406509647716119,
+      "morans_i_expected": -0.0008110300081103001,
+      "n_eff_morans": 37,
+      "B": 500
+    },
+    "pacific": {
+      "basin": "pacific",
+      "rho_observed": -0.345201371319171,
+      "p_perm": 0.002,
+      "n_cells": 1544,
+      "n_blocks_500km": 755,
+      "morans_i_r_loc": 0.9360340382081049,
+      "morans_i_expected": -0.0006337135614702154,
+      "n_eff_morans": 52,
+      "B": 500
+    },
+    "southern": {
+      "basin": "southern",
+      "rho_observed": -0.45666791206707696,
+      "p_perm": 0.002,
+      "n_cells": 788,
+      "n_blocks_500km": 240,
+      "morans_i_r_loc": 0.9315435651864707,
+      "morans_i_expected": -0.0012626262626262627,
+      "n_eff_morans": 28,
+      "B": 500
+    }
+  },
+  "definition": "Q = -Pearson_rho(<r_loc>, |grad SSH|); Q > 0 indicates Quiescence Signature presence",
+  "intended_uses": [
+    "Observational benchmark for CMIP6 model evaluation",
+    "Emergent constraint on AMOC sensitivity (Q vs future AMOC decline across models)",
+    "Cross-system comparison: ocean basins, atmospheric jets, SLA altimetry"
+  ]
+}
