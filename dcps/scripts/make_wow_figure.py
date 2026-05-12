@@ -81,16 +81,21 @@ def main():
              markeredgecolor="k", markeredgewidth=0.8, zorder=5,
              label="PALMOD-130k (this work)")
 
-    # Caesar 2021 multi-proxy: medium colored circles
-    colours = {"Thornalley 2018 $T_{sub}$": "C0",
-                "Rahmstorf 2015 AMOC index": "C2",
-                "Spooner 2020 $T.$ quinqueloba": "C1",
-                "Thornalley 2018 sortable silt": "0.5"}
+    # Caesar 2021 multi-proxy: distinct color AND distinct marker
+    # per proxy so the four series are distinguishable without
+    # color alone.
+    proxy_style = {
+        "Thornalley 2018 $T_{sub}$":          dict(color="C0", marker="o"),
+        "Rahmstorf 2015 AMOC index":          dict(color="C2", marker="^"),
+        "Spooner 2020 $T.$ quinqueloba":      dict(color="C1", marker="D"),
+        "Thornalley 2018 sortable silt":      dict(color="0.5", marker="v"),
+    }
     for name, z_by_w in proxies.items():
         ws = sorted(z_by_w.keys())
         zs = [z_by_w[w] for w in ws]
-        ax.plot(ws, zs, "o", markersize=10,
-                 color=colours.get(name, "0.4"),
+        sty = proxy_style.get(name, dict(color="0.4", marker="P"))
+        ax.plot(ws, zs, sty["marker"], markersize=10,
+                 color=sty["color"],
                  markeredgecolor="k", markeredgewidth=0.5,
                  zorder=6, label=name)
 
