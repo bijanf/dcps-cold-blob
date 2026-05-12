@@ -26,15 +26,21 @@ framework, the other applies it to the modern Cold Blob.
 | `paper/roadmap_10yr.md` | Ten-year research programme on Quiescence universality across geostrophic turbulence. |
 | `results/` | Pre-computed JSON tables and figures (theoretical curve fit, 1-D toy outputs, Q-index table). |
 
-## What's planned but not yet executed
+## What's done since the initial commit
+
+| Item | Status | Result |
+|---|---|---|
+| ERA5 Z500 fetch + atmospheric Quiescence | DONE | NH ρ = −0.04 (ns); SH ρ = −0.12 (p = 0.015); sign supported, weaker than ocean |
+| Temporal frequency-detuning analysis | DONE | partial ρ(σ²ω, Ψ \| R) = +0.24 (opposite predicted sign); reformulation not supported |
+| Three Jupyter replication notebooks | DONE | reproduce Q for 3 basins; reproduce Fisher's-exact p; fit theoretical curve |
+| Unit tests (pytest) | DONE | 8/8 pass on `tests/test_quiescence_index.py` and `tests/test_theoretical_curve.py` |
+
+## What remains pending
 
 | Item | Status |
 |---|---|
-| ERA5 daily Z500 fetch + atmospheric Quiescence test (NH and SH 30–60°) | Code stub, fetch pending |
-| CMEMS/AVISO SLA fetch + altimetry Quiescence test | Pending CDS account |
-| CMIP6 HighResMIP Q-vs-resolution Mann-Whitney U test | Pangeo fetch pending |
-| Temporal frequency-detuning sliding-window analysis | Pending |
-| Jupyter replication notebooks | Pending |
+| CMEMS/AVISO SLA fetch + altimetry Quiescence test | Needs free CMEMS account registration |
+| CMIP6 HighResMIP Q-vs-resolution Mann-Whitney U test | Pangeo fetch script ready (`data/fetch_highresmip.py`); user can run when convenient |
 
 ## Key findings so far
 

@@ -1,0 +1,21 @@
+{
+  "NH": {
+    "hemisphere": "Northern",
+    "rho": -0.03954185378701925,
+    "p_perm": 0.44,
+    "n_cells": 11160,
+    "n_blocks": 359,
+    "Q": 0.03954185378701925
+  },
+  "SH": {
+    "hemisphere": "Southern",
+    "rho": -0.11803326852432612,
+    "p_perm": 0.015,
+    "n_cells": 11160,
+    "n_blocks": 390,
+    "Q": 0.11803326852432612
+  },
+  "prediction": "rho < 0 (jet cores: high gradient, low coherence)",
+  "verdict_NH": "supports prediction",
+  "verdict_SH": "supports prediction"
+}
