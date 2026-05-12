@@ -41,8 +41,6 @@ def main():
     for name, depth, z, group, augmented in proxies:
         color = "crimson" if group == "surface" else "steelblue"
         marker = "o" if group == "surface" else "s"
-        # Augmented deep proxies: lighter face + darker edge so they
-        # remain distinguishable without on-plot text.
         edge = "black"
         face = color
         if augmented:
@@ -50,29 +48,6 @@ def main():
         ax.scatter(depth, z, s=240, c=face, marker=marker,
                       edgecolors=edge, linewidths=1.8, zorder=10,
                       label=None)
-        # Proxy name labels placed manually so nothing overlaps.
-        text_x_mult = {
-            "Thornalley 2018 $T_{\\mathrm{sub}}$":          0.55,
-            "Spooner 2020 $T.$ quinqueloba":                1.20,
-            "Rahmstorf 2015 multi-proxy AMOC":              1.20,
-            "Thornalley 2018 sortable silt":                0.55,
-            "Osmann 2019 MAS productivity":                 0.55,
-            "Thibodeau 2018 MD99-2220 $\\delta^{18}$O":     1.20,
-            "Moffa-Sanchez 2015 RAPiD-35-COM":              1.20,
-        }[name]
-        text_y_off = {
-            "Thornalley 2018 $T_{\\mathrm{sub}}$":          0.0,
-            "Spooner 2020 $T.$ quinqueloba":                0.0,
-            "Rahmstorf 2015 multi-proxy AMOC":              0.0,
-            "Thornalley 2018 sortable silt":               +0.8,
-            "Osmann 2019 MAS productivity":                +0.8,
-            "Thibodeau 2018 MD99-2220 $\\delta^{18}$O":     0.0,
-            "Moffa-Sanchez 2015 RAPiD-35-COM":              0.0,
-        }[name]
-        ha = "left" if text_x_mult > 1.0 else "right"
-        ax.annotate(name, xy=(depth, z),
-                        xytext=(depth * text_x_mult, z + text_y_off),
-                        fontsize=9.5, ha=ha, va="center")
 
     # |z|=3 threshold dashed line
     ax.axhline(3.0, color="black", linestyle="--", linewidth=1.5,
