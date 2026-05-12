@@ -22,7 +22,6 @@ private working copy.
 | `dcps/scripts/` | End-to-end analysis pipelines (multi-basin Quiescence, multi-proxy unprecedentedness test, geostrophic-EKE mechanism test, CMIP6 emergent constraint, etc.) |
 | `dcps/tests/` | Unit tests for the package |
 | `data/external/` | Small reference datasets (Caesar 2021 multi-proxy xlsx, Thornalley 2018 CSV, Steinhilber 2012 TSI). Bulk data (HadISST, PALMOD LiPD) is gitignored; see *Reproducing* below. |
-| `CLAUDE.md`, `roadmap.md` | Working notes |
 
 ## Headline findings (revised submission)
 
