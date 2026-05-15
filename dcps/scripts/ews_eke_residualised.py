@@ -259,11 +259,10 @@ def make_figure(F, F_res, lag1_raw, lag1_res, var_raw, var_res,
     fig = plt.figure(figsize=(7.09, 5.0), constrained_layout=True)
     gs = fig.add_gridspec(2, 2)
 
-    def _panel(ax, label):
-        ax.text(0.02, 0.97, label, transform=ax.transAxes,
-                fontsize=8, fontweight="bold", va="top", ha="left",
-                bbox=dict(facecolor="white", edgecolor="none",
-                          alpha=0.85, pad=1.5))
+    def _panel(ax, label, dx=-0.10):
+        # Panel letter OUTSIDE the axes (top-left), no bbox.
+        ax.text(dx, 1.02, label, transform=ax.transAxes,
+                fontsize=11, fontweight="bold", va="bottom", ha="left")
 
     # (a) raw vs residualised fingerprint
     ax_a = fig.add_subplot(gs[0, 0])
@@ -275,7 +274,7 @@ def make_figure(F, F_res, lag1_raw, lag1_res, var_raw, var_res,
     ax_a.set_ylabel("fingerprint anomaly [K]")
     ax_a.legend(loc="lower left", frameon=False)
     ax_a.tick_params(direction="in", length=2.5)
-    _panel(ax_a, "(a)")
+    _panel(ax_a, "a")
 
     # (b) lag-1 AC
     ax_b = fig.add_subplot(gs[0, 1])
@@ -284,7 +283,7 @@ def make_figure(F, F_res, lag1_raw, lag1_res, var_raw, var_res,
     ax_b.set_xlabel("year (right edge of 50-yr window)")
     ax_b.set_ylabel("lag-1 autocorrelation")
     ax_b.tick_params(direction="in", length=2.5)
-    _panel(ax_b, "(b)")
+    _panel(ax_b, "b")
 
     # (c) variance
     ax_c = fig.add_subplot(gs[1, 0])
@@ -293,7 +292,7 @@ def make_figure(F, F_res, lag1_raw, lag1_res, var_raw, var_res,
     ax_c.set_xlabel("year (right edge of 50-yr window)")
     ax_c.set_ylabel(r"variance [K$^{2}$]")
     ax_c.tick_params(direction="in", length=2.5)
-    _panel(ax_c, "(c)")
+    _panel(ax_c, "c")
 
     # (d) slope comparison
     ax_d = fig.add_subplot(gs[1, 1])
@@ -312,7 +311,7 @@ def make_figure(F, F_res, lag1_raw, lag1_res, var_raw, var_res,
     ax_d.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22),
                 ncol=2, frameon=False)
     ax_d.tick_params(direction="in", length=2.5)
-    _panel(ax_d, "(d)")
+    _panel(ax_d, "d")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, bbox_inches="tight")

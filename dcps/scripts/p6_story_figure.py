@@ -157,12 +157,10 @@ def main(argv=None) -> int:
     fig = plt.figure(figsize=(7.09, 5.6), constrained_layout=True)
     gs = fig.add_gridspec(2, 2)
 
-    def _panel_label(ax, label):
-        # Corner letter only; all descriptive text lives in the caption.
-        ax.text(0.02, 0.97, label, transform=ax.transAxes,
-                fontsize=8, fontweight="bold", va="top", ha="left",
-                bbox=dict(facecolor="white", edgecolor="none",
-                          alpha=0.85, pad=1.5))
+    def _panel_label(ax, label, dx=-0.10):
+        # Panel letter OUTSIDE the axes (top-left), no bbox.
+        ax.text(dx, 1.02, label, transform=ax.transAxes,
+                fontsize=11, fontweight="bold", va="bottom", ha="left")
 
     # (a) <r_loc>
     ax_a, kw_a = _make_map_ax(fig, gs[0, 0], lon_extent)
@@ -172,7 +170,7 @@ def main(argv=None) -> int:
                            vmax=np.nanpercentile(rv_masked, 98), **kw_a)
     plt.colorbar(im_a, ax=ax_a, label=r"$\langle r_{\mathrm{loc}}\rangle_t$",
                  shrink=0.85, pad=0.02)
-    _panel_label(ax_a, "(a)")
+    _panel_label(ax_a, "a")
 
     # (b) EKE
     ax_b, kw_b = _make_map_ax(fig, gs[0, 1], lon_extent)
@@ -181,7 +179,7 @@ def main(argv=None) -> int:
                            vmax=np.nanpercentile(ev_masked, 97), **kw_b)
     plt.colorbar(im_b, ax=ax_b, label=r"EKE [m$^{2}$ s$^{-2}$]",
                  shrink=0.85, pad=0.02)
-    _panel_label(ax_b, "(b)")
+    _panel_label(ax_b, "b")
 
     # (c) scatter + curves
     ax_c = fig.add_subplot(gs[1, 0])
@@ -207,7 +205,7 @@ def main(argv=None) -> int:
                 ncol=2, frameon=False, fontsize=7, handlelength=2.0,
                 columnspacing=1.4)
     ax_c.tick_params(direction="in", length=2.5)
-    _panel_label(ax_c, "(c)")
+    _panel_label(ax_c, "c")
 
     # (d) residual (registered-fit tau if available, else tau_obs)
     tau_use = reg_params[0] if reg_params else TAU_OBS_NA
@@ -220,7 +218,7 @@ def main(argv=None) -> int:
     plt.colorbar(im_d, ax=ax_d,
                  label=r"$\langle r_{\mathrm{loc}}\rangle - $ fitted law",
                  shrink=0.85, pad=0.02)
-    _panel_label(ax_d, "(d)")
+    _panel_label(ax_d, "d")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out, bbox_inches="tight")

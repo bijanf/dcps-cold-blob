@@ -19,11 +19,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def _panel(ax, label):
-    ax.text(0.02, 0.97, label, transform=ax.transAxes,
-            fontsize=10, fontweight="bold", va="top", ha="left",
-            bbox=dict(facecolor="white", edgecolor="none",
-                      alpha=0.85, pad=2.0))
+def _panel(ax, label, dx=-0.10):
+    # Panel letter outside the axes (top-left), no bbox.
+    ax.text(dx, 1.02, label, transform=ax.transAxes,
+            fontsize=14, fontweight="bold", va="bottom", ha="left")
 
 
 def main(argv=None) -> int:
@@ -106,7 +105,7 @@ def main(argv=None) -> int:
     axA.legend(loc="lower right", frameon=False)
     axA.tick_params(direction="in", length=2.5)
     axA.grid(alpha=0.25, axis="y")
-    _panel(axA, "a")
+    _panel(axA, "a", dx=-0.10)
 
     # ---- Panel (b): pooled histogram, with and without CMCC -------------
     bins = np.linspace(-3.0, 1.5, 41)
@@ -119,12 +118,14 @@ def main(argv=None) -> int:
     axB.set_xlabel(r"100-yr Sen slope, subpolar$-$subtropical SST contrast"
                      r" (deg C / century)")
     axB.set_ylabel("piControl windows")
-    # Legend on the LEFT side (per user request); no in-plot stats text box
-    # — statistics live in the caption.
-    axB.legend(loc="upper left", frameon=False)
+    # Legend on the LEFT side (per author request).  Anchored just
+    # below the top so it does not collide with the panel letter
+    # placed above the axes at (dx, 1.02).
+    axB.legend(loc="upper left", bbox_to_anchor=(0.02, 0.97),
+                frameon=False)
     axB.tick_params(direction="in", length=2.5)
     axB.grid(alpha=0.25, axis="y")
-    _panel(axB, "b")
+    _panel(axB, "b", dx=-0.10)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out, bbox_inches="tight")
