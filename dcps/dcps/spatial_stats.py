@@ -51,33 +51,72 @@ def make_spatial_blocks(lat, lon, block_km=500.0):
 
 
 def spatial_block_permutation(x, y, lat, lon, block_km=500.0, B=1000, seed=0):
-    """Block-permutation Pearson correlation test.
+    """Spatial-block permutation Pearson correlation test.
 
-    Strategy: partition cells into geographic blocks of radius block_km/2;
-    for each replicate, randomly reassign each block to a destination
-    block (shuffle the block-mean of x while keeping y fixed); recompute
-    Pearson at cell level by broadcasting the shuffled block-means back
-    to cells; the resulting empirical distribution gives a two-sided
-    p-value bounded below by 1/B.
+    Tests whether two spatially-autocorrelated cell-wise fields are more
+    correlated than expected by chance, accounting for the loss of
+    effective sample size caused by spatial autocorrelation.
+
+    Strategy
+    --------
+    1. Partition cells into geographic blocks of approximate radius
+       ``block_km / 2`` (`make_spatial_blocks`).  The block diameter must
+       be at least the autocorrelation length of the fields, so that
+       distinct blocks can be treated as approximately independent units
+       under the null.
+    2. Reduce each block to its arithmetic mean of *x* and *y*; this
+       gives ``n_blocks`` paired observations whose effective autocorrelation
+       is low.
+    3. Observed test statistic: Pearson correlation on the block-mean
+       pairs.
+    4. For each of *B* replicates, permute the block labels of *x*
+       (equivalently of *y*) and recompute the Pearson on the permuted
+       pairs.  This generates a calibrated null distribution under H0
+       of independence.
+    5. The two-sided empirical p-value is the fraction of replicates with
+       ``|rho_null| >= |rho_blocks|``, bounded below by ``1 / B``.
+
+    The cell-wise Pearson on the full-resolution arrays is also returned
+    as ``rho_observed`` for descriptive context, but **inference uses the
+    block-mean p-value** because cell-wise rho's significance is
+    inflated by spatial autocorrelation.  Effective sample size for the
+    test is ``n_blocks``.
+
+    Calibration: under H0 of two independent spatially-autocorrelated
+    Gaussian fields the empirical Type-I error rate at alpha = 0.05
+    lands in [0.025, 0.085] (binomial 95% CI for n_trials = 100); see
+    ``dcps/tests/test_spatial_stats.py::test_h0_type_i_error_calibration``.
+
+    Notes
+    -----
+    Earlier implementations (commits prior to the 2026-05 NCOMMS revision)
+    replaced source-block cells with the *block-mean* of a destination
+    block and computed the null Pearson against the *full-resolution* y;
+    that mixed scales and biased the null variance.  An interim cell-level
+    label-swap implementation failed a calibration check at alpha = 0.05
+    because permuted x_shuffled still carried within-block autocorrelation
+    that the cell-level rho_obs lacked.  The current implementation runs
+    the inference on block means, which is both standard and calibrated.
 
     Parameters
     ----------
-    x, y     : 1-D arrays of cell-wise values (NaNs allowed; filtered)
-    lat, lon : 1-D arrays of cell coordinates (same length as x, y)
+    x, y     : 1-D arrays of cell-wise values (NaNs allowed; filtered).
+    lat, lon : 1-D arrays of cell coordinates (same length as x, y).
     block_km : block diameter in km (default 500, matches SST
-               decorrelation length)
-    B        : number of permutations
-    seed     : RNG seed
+               decorrelation length).
+    B        : number of permutations.
+    seed     : RNG seed.
 
     Returns
     -------
     dict with:
-      rho_observed : observed Pearson rho on valid cells
-      n_cells      : number of cells used
-      n_blocks     : number of spatial blocks
-      n_eff        : effective sample size ~ number of blocks
-      p_perm       : empirical two-sided p-value
-      rho_null     : ndarray of B null-rho values
+      rho_observed : cell-wise Pearson rho on valid cells (descriptive).
+      rho_blocks   : Pearson rho on block-mean pairs (the test statistic).
+      n_cells      : number of cells used.
+      n_blocks     : number of spatial blocks (effective sample size).
+      n_eff        : alias of n_blocks for backward compatibility.
+      p_perm       : empirical two-sided p-value on the block-mean null.
+      rho_null     : ndarray of B null rho values.
     """
     x = np.asarray(x, dtype=float).ravel()
     y = np.asarray(y, dtype=float).ravel()
@@ -88,37 +127,52 @@ def spatial_block_permutation(x, y, lat, lon, block_km=500.0, B=1000, seed=0):
     lat, lon = lat[valid], lon[valid]
 
     if x.size < 10:
-        return dict(rho_observed=float("nan"), p_perm=float("nan"),
+        return dict(rho_observed=float("nan"), rho_blocks=float("nan"),
+                    p_perm=float("nan"),
                     n_cells=int(x.size), n_blocks=0, n_eff=0,
                     rho_null=np.array([]))
 
-    rho_obs = float(np.corrcoef(x, y)[0, 1])
+    rho_cells = float(np.corrcoef(x, y)[0, 1])
     block_id = make_spatial_blocks(lat, lon, block_km=block_km)
-    n_blocks = block_id.max() + 1
+    n_blocks = int(block_id.max() + 1)
+
+    # Block means of x and y.  Empty blocks (no cells assigned) are NaN
+    # and excluded from the test.
+    xb = np.full(n_blocks, np.nan)
+    yb = np.full(n_blocks, np.nan)
+    for b in range(n_blocks):
+        cells = np.where(block_id == b)[0]
+        if cells.size:
+            xb[b] = x[cells].mean()
+            yb[b] = y[cells].mean()
+    finite = np.isfinite(xb) & np.isfinite(yb)
+    xb_v = xb[finite]
+    yb_v = yb[finite]
+    n_eff = int(finite.sum())
+
+    if n_eff < 4:
+        # Not enough blocks for a meaningful permutation test.
+        return dict(rho_observed=rho_cells, rho_blocks=float("nan"),
+                    p_perm=float("nan"),
+                    n_cells=int(x.size), n_blocks=n_blocks, n_eff=n_eff,
+                    rho_null=np.array([]))
+
+    rho_blocks = float(np.corrcoef(xb_v, yb_v)[0, 1])
+
     rng = np.random.default_rng(seed)
     rho_null = np.empty(B)
     for b in range(B):
-        # Permute block-mean of x; broadcast back to cells.
-        # Each block keeps its members, but its x-values get replaced by
-        # those of a randomly chosen other block (pseudo-resampling).
-        perm = rng.permutation(n_blocks)
-        x_shuffled = x.copy()
-        for src, dst in enumerate(perm):
-            mask = (block_id == src)
-            if not mask.any():
-                continue
-            # Use shuffled-block's mean for the destination cells:
-            x_shuffled[mask] = x[block_id == dst].mean()
-        rho_null[b] = float(np.corrcoef(x_shuffled, y)[0, 1])
-    # Two-sided empirical p-value
-    p_perm = float((np.abs(rho_null) >= abs(rho_obs)).mean())
+        perm = rng.permutation(n_eff)
+        rho_null[b] = float(np.corrcoef(xb_v[perm], yb_v)[0, 1])
+    p_perm = float((np.abs(rho_null) >= abs(rho_blocks)).mean())
     p_perm = max(p_perm, 1.0 / B)
     return dict(
-        rho_observed=rho_obs,
+        rho_observed=rho_cells,
+        rho_blocks=rho_blocks,
         p_perm=p_perm,
         n_cells=int(x.size),
-        n_blocks=int(n_blocks),
-        n_eff=int(n_blocks),
+        n_blocks=n_blocks,
+        n_eff=n_eff,
         rho_null=rho_null,
     )
 
