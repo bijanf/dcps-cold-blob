@@ -158,21 +158,28 @@ def main():
     fig = plt.figure(figsize=(13.0, 7.5), constrained_layout=True)
     gs = fig.add_gridspec(2, 4)
 
-    # Panel-letter helper: bold corner letter OUTSIDE each axis, no bbox,
-    # matching the convention used in figs 1, 4 and SI of this manuscript.
+    # Panel-letter helper: bold corner letter OUTSIDE each axis, no bbox.
     def _panel(ax, label, dx=-0.18):
         ax.text(dx, 1.02, label, transform=ax.transAxes,
                 fontsize=14, fontweight="bold", va="bottom", ha="left")
 
-    # Common colorbar arguments: short bar (shrink=0.55) sitting tight
-    # next to its parent axis (pad=0.02) so the colorbars do not dwarf
-    # the 24x24 maps the way the constrained-layout default did.
-    _CB = dict(shrink=0.55, pad=0.02)
+    # Colorbar helper: a thin strip directly to the right of the map,
+    # matching the map's height exactly via make_axes_locatable.  This
+    # is the only reliable way to keep the colorbar tight against the
+    # map across different figure sizes / constrained_layout passes.
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    def _attach_cb(ax, im, label):
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="4%", pad=0.06)
+        cb = fig.colorbar(im, cax=cax, label=label)
+        cb.ax.tick_params(labelsize=8)
+        return cb
 
     ax_f2 = fig.add_subplot(gs[0, 0])
     im0 = ax_f2.imshow(F2, cmap="inferno", origin="lower",
                         interpolation="bilinear")
-    plt.colorbar(im0, ax=ax_f2, label="$F^2$ (EKE proxy)", **_CB)
+    _attach_cb(ax_f2, im0, "$F^2$ (EKE proxy)")
     ax_f2.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                    linewidths=1.0)
     _panel(ax_f2, "a")
@@ -182,8 +189,7 @@ def main():
     vmax = max(rl_ctrl.max(), rl_null.max())
     im1 = ax_c.imshow(rl_ctrl, cmap="viridis", origin="lower",
                        vmin=vmin, vmax=vmax, interpolation="bilinear")
-    plt.colorbar(im1, ax=ax_c, label=r"$\langle r_{\mathrm{loc}}\rangle_t$",
-                  **_CB)
+    _attach_cb(ax_c, im1, r"$\langle r_{\mathrm{loc}}\rangle_t$")
     ax_c.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                   linewidths=1.0)
     _panel(ax_c, "b")
@@ -191,8 +197,7 @@ def main():
     ax_n = fig.add_subplot(gs[0, 2])
     im2 = ax_n.imshow(rl_null, cmap="viridis", origin="lower",
                        vmin=vmin, vmax=vmax, interpolation="bilinear")
-    plt.colorbar(im2, ax=ax_n, label=r"$\langle r_{\mathrm{loc}}\rangle_t$",
-                  **_CB)
+    _attach_cb(ax_n, im2, r"$\langle r_{\mathrm{loc}}\rangle_t$")
     ax_n.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                   linewidths=1.0)
     _panel(ax_n, "c")
@@ -201,8 +206,7 @@ def main():
     dmax = float(np.nanmax(np.abs(delta_r_map)))
     im3 = ax_d.imshow(delta_r_map, cmap="RdBu_r", origin="lower",
                        vmin=-dmax, vmax=dmax, interpolation="bilinear")
-    plt.colorbar(im3, ax=ax_d,
-                  label=r"$\Delta r_{\mathrm{loc}}$ (NULL$-$CTRL)", **_CB)
+    _attach_cb(ax_d, im3, r"$\Delta r_{\mathrm{loc}}$ (NULL$-$CTRL)")
     ax_d.contour(patch_mask.astype(float), levels=[0.5], colors="black",
                   linewidths=1.0)
     _panel(ax_d, "d")
