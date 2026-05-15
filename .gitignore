@@ -55,3 +55,7 @@ secrets/
 # P6 PIK bundle staging area (canonical files copied into data/external/p6/)
 p6_results/
 p6_bundle.tar.gz
+
+# Sharable manuscript bundles built by `zip -r ... manuscript/...`
+manuscript-bundle-*.zip
+manuscript-bundle-README.md
