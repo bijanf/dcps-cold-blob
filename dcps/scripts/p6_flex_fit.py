@@ -10,6 +10,7 @@ For each: chi^2_nu, AIC, BIC.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -18,18 +19,16 @@ import numpy as np
 import xarray as xr
 from scipy.optimize import curve_fit
 
-sys.path.insert(0, "/home/fallah/NEW_Theory/dcps/scripts")
+# Sibling-script imports: add the directory this file lives in to sys.path so
+# `from multi_basin_quiescence import ...` resolves regardless of where the
+# script is run from. This avoids hard-coded absolute paths.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from multi_basin_quiescence import (  # noqa: E402
     BASINS,
     instantaneous_phase,
     local_r_mean,
     preprocess_anomaly,
 )
-
-SST_PATH = Path("/p/projects/poem/fallah/dlesym_p6_out/p6_30yr_sst.nc")
-EKE_PATH = Path("/p/projects/poem/fallah/cache/glorys12_eke_clim_atlantic_2deg.nc")
-OUT_JSON = Path("/p/projects/poem/fallah/p6_bundle/data/flex_fit.json")
-OUT_NPZ = Path("/p/projects/poem/fallah/p6_bundle/data/flex_fit_cells.npz")
 
 
 def _registered(eke, tau):
@@ -84,21 +83,30 @@ def fit_all(x_rloc, y_eke):
     return fits
 
 
-def main() -> int:
-    print(f"loading {SST_PATH}")
-    sst_ds = xr.open_dataset(SST_PATH)
+def main(argv=None) -> int:
+    p_arg = argparse.ArgumentParser(description=__doc__)
+    p_arg.add_argument("--sst", type=Path, required=True,
+                       help="Path to monthly-mean SST NetCDF (lat/lon).")
+    p_arg.add_argument("--eke", type=Path, required=True,
+                       help="Path to EKE climatology on the basin grid.")
+    p_arg.add_argument("--out-json", type=Path, required=True)
+    p_arg.add_argument("--out-npz",  type=Path, required=True)
+    p_arg.add_argument("--basin", default="atlantic")
+    args = p_arg.parse_args(argv)
+
+    print(f"loading {args.sst}")
+    sst_ds = xr.open_dataset(args.sst)
     sst = sst_ds.get("sst", next(iter(sst_ds.data_vars.values())))
 
-    # Already lat/lon. Build the 2-deg basin <r_loc> the same way the script does.
-    # Reuse healpix_to_basin_grid path through the lat/lon branch.
-    sys.path.insert(0, "/home/fallah/NEW_Theory/dcps/scripts")
-    from quiescence_dlesym import healpix_to_basin_grid
-    sst_basin = healpix_to_basin_grid(SST_PATH, basin="atlantic")
+    # Already lat/lon.  Use the same healpix-or-latlon regridder as the P6
+    # pipeline so the cell set is identical to the primary run.
+    from quiescence_dlesym import healpix_to_basin_grid  # noqa: E402
+    sst_basin = healpix_to_basin_grid(args.sst, basin=args.basin)
     bp = preprocess_anomaly(sst_basin)
     phase = instantaneous_phase(bp)
     rloc = local_r_mean(phase, radius_km=500.0)
 
-    eke = xr.open_dataarray(EKE_PATH)
+    eke = xr.open_dataarray(args.eke)
     rv = rloc.values
     ev = eke.values
     if rv.shape != ev.shape:
@@ -109,7 +117,6 @@ def main() -> int:
     print(f"n_cells={x.size}")
 
     fits = fit_all(x, y)
-    # Rank by AIC, lowest first
     fits_valid = [f for f in fits if "AIC" in f]
     fits_valid.sort(key=lambda f: f["AIC"])
     delta_aic = fits_valid[0]["AIC"] if fits_valid else 0.0
@@ -127,17 +134,16 @@ def main() -> int:
             "mean": float(y.mean()), "min": float(y.min()), "max": float(y.max()),
         },
     }
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(json.dumps(out, indent=2))
-    print(f"wrote {OUT_JSON}")
+    args.out_json.parent.mkdir(parents=True, exist_ok=True)
+    args.out_json.write_text(json.dumps(out, indent=2))
+    print(f"wrote {args.out_json}")
     print("\nfits ranked by AIC:")
     for f in fits_valid:
         print(f"  {f['family']:>11s} k={f['k']} chi2_nu={f['chi2_nu']:.3f} "
               f"AIC={f['AIC']:.1f} dAIC={f['dAIC']:.1f} BIC={f['BIC']:.1f}")
 
-    # Save the (x, y) data for downstream story-figure scatter
-    np.savez(OUT_NPZ, rloc=x, eke=y)
-    print(f"wrote {OUT_NPZ}")
+    np.savez(args.out_npz, rloc=x, eke=y)
+    print(f"wrote {args.out_npz}")
     return 0
 
 

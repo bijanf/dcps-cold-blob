@@ -1,13 +1,11 @@
 """Aggregate all P6 verdict JSONs into a single summary CSV + markdown."""
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 import sys
 
-OUT_DIR = Path("/p/projects/poem/fallah/dlesym_p6_out")
-CSV_OUT = Path("/p/projects/poem/fallah/p6_bundle/summary.csv")
-MD_OUT = Path("/p/projects/poem/fallah/p6_bundle/summary.md")
 FIELDS = ("tag", "Q_X", "p_perm", "tau_fit", "tau_obs_NA",
           "chi2_nu", "n_cells", "drift_K_per_year", "verdict")
 
@@ -20,9 +18,19 @@ def parse_tag(filename: str) -> str:
     return stem
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    p_arg = argparse.ArgumentParser(description=__doc__)
+    p_arg.add_argument("--verdict-dir", type=Path, required=True,
+                       help="Directory containing p6_verdict_*.json files.")
+    p_arg.add_argument("--csv-out", type=Path, required=True)
+    p_arg.add_argument("--md-out", type=Path, required=True)
+    args = p_arg.parse_args(argv)
+    out_dir = args.verdict_dir
+    csv_out = args.csv_out
+    md_out = args.md_out
+
     rows = []
-    for p in sorted(OUT_DIR.glob("p6_verdict_*.json")):
+    for p in sorted(out_dir.glob("p6_verdict_*.json")):
         try:
             d = json.loads(p.read_text())
         except json.JSONDecodeError as e:
@@ -37,13 +45,13 @@ def main() -> int:
         print("no verdicts found", file=sys.stderr)
         return 1
 
-    CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
-    with CSV_OUT.open("w") as fh:
+    csv_out.parent.mkdir(parents=True, exist_ok=True)
+    with csv_out.open("w") as fh:
         fh.write(",".join(FIELDS) + "\n")
         for r in rows:
             fh.write(",".join("" if r.get(k) is None else str(r[k])
                               for k in FIELDS) + "\n")
-    print(f"wrote {CSV_OUT} ({len(rows)} rows)")
+    print(f"wrote {csv_out} ({len(rows)} rows)")
 
     # Markdown summary
     lines = ["# P6 verdict ensemble summary\n",
@@ -108,8 +116,8 @@ def main() -> int:
         if s:
             lines.append(s)
 
-    MD_OUT.write_text("\n".join(lines) + "\n")
-    print(f"wrote {MD_OUT}")
+    md_out.write_text("\n".join(lines) + "\n")
+    print(f"wrote {md_out}")
     return 0
 
 

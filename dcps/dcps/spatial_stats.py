@@ -17,16 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 
-EARTH_R_KM = 6371.0
-
-
-def _haversine_km(lat1, lon1, lat2, lon2):
-    lat1r, lat2r = np.deg2rad(lat1), np.deg2rad(lat2)
-    dlat = lat2r - lat1r
-    dlon = np.deg2rad(lon2 - lon1)
-    a = (np.sin(dlat / 2) ** 2
-         + np.cos(lat1r) * np.cos(lat2r) * np.sin(dlon / 2) ** 2)
-    return 2 * EARTH_R_KM * np.arcsin(np.sqrt(a))
+from .geo import EARTH_R_KM, haversine_km as _haversine_km  # noqa: F401
 
 
 def make_spatial_blocks(lat, lon, block_km=500.0):
