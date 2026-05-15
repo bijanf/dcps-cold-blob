@@ -1,0 +1,12 @@
+{
+  "n_years": 127,
+  "n_windows": 78,
+  "lag1_slope_raw": -0.0003213609799097882,
+  "lag1_slope_residualised": -0.0003971947075336829,
+  "var_slope_raw": 0.000536047744471417,
+  "var_slope_residualised": 0.000525899656127174,
+  "lag1_slope_change_frac": 0.23597677491891703,
+  "var_slope_change_frac": -0.01893131432583453,
+  "beta_eke_weight": -0.0917645660912389,
+  "rho_F_W": -0.08180996884902747
+}

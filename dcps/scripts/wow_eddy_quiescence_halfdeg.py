@@ -321,11 +321,8 @@ def main():
                         "$^{\\circ}$ (m$^{2}$/s$^{2}$)")
     ax_sc.set_ylabel(r"$\langle r_{\mathrm{loc}}\rangle_t$  ("
                         f"1/{int(1/TARGET_DEG)}$^{{\\circ}}$)")
-    ax_sc.text(0.04, 0.96,
-                  f"$\\rho = {rho:+.3f}$\n$n = {n}$",
-                  transform=ax_sc.transAxes, fontsize=10, va="top",
-                  bbox=dict(boxstyle="round,pad=0.4",
-                              facecolor="white", edgecolor="0.5"))
+    # rho and n live in the caption per the project figure-quality
+    # standard; no in-plot statistics text box.
     ax_sc.text(-0.18, 1.02, "c", transform=ax_sc.transAxes,
                   fontweight="bold", fontsize=14)
     ax_sc.grid(alpha=0.3)
