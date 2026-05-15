@@ -191,9 +191,13 @@ def regrid_glorys_to_2deg(da, basin="atlantic"):
 
 
 def main():
+    import os
+    BASIN = os.environ.get("BASIN", "atlantic")
+    if BASIN not in BASINS:
+        raise SystemExit(f"BASIN env var '{BASIN}' not in BASINS={list(BASINS)}")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     print("=" * 70)
-    print(" GLORYS12 1/12 deg eddy-resolving NA validation")
+    print(f" GLORYS12 1/12 deg eddy-resolving validation -- basin={BASIN}")
     print("=" * 70)
 
     t0 = time.time()
@@ -212,22 +216,23 @@ def main():
     eke_native = native_eke(ssh)
     print(f"  native EKE shape: {tuple(eke_native.sizes.values())} in {time.time()-t0:.1f}s")
 
-    # Save native EKE for figure inset
-    eke_native.to_netcdf(OUT_DIR / "eke_native_1_12deg.nc")
-    print(f"  wrote {OUT_DIR / 'eke_native_1_12deg.nc'}")
+    # Save native EKE for figure inset — basin-suffixed to avoid collisions.
+    _suf_native = "" if BASIN == "atlantic" else f"_{BASIN}"
+    eke_native.to_netcdf(OUT_DIR / f"eke_native_1_12deg{_suf_native}.nc")
+    print(f"  wrote {OUT_DIR / f'eke_native_1_12deg{_suf_native}.nc'}")
 
     # ------ Box-average native EKE to 2 deg basin grid -------------------
     t0 = time.time()
     print("\nBox-averaging native EKE to 2 deg NA basin grid...")
     nav_lat = ssh["nav_lat"].values
     nav_lon = ssh["nav_lon"].values
-    eke_2deg_from_native = box_average_to_grid(eke_native, nav_lat, nav_lon, "atlantic")
+    eke_2deg_from_native = box_average_to_grid(eke_native, nav_lat, nav_lon, BASIN)
     print(f"  box-averaged shape: {tuple(eke_2deg_from_native.sizes.values())} in {time.time()-t0:.1f}s")
 
     # ------ Compute 2 deg r_loc using GLORYS12 SST (self-consistent test) -
     t0 = time.time()
     print("\nRegridding GLORYS12 SST to 2 deg...")
-    sst_2deg = regrid_glorys_to_2deg(sst, "atlantic")
+    sst_2deg = regrid_glorys_to_2deg(sst, BASIN)
     print(f"  sst_2deg shape: {tuple(sst_2deg.sizes.values())} in {time.time()-t0:.1f}s")
 
     print("\nQuiescence pipeline on 2 deg GLORYS12 SST...")
@@ -257,7 +262,7 @@ def main():
 
     # ------ Save summary --------------------------------------------------
     out = {
-        "basin": "atlantic",
+        "basin": BASIN,
         "resolution_native_deg": 1.0 / 12.0,
         "resolution_eval_deg": 2.0,
         "rho_eke_eddy_resolving": float(rho),
@@ -269,13 +274,17 @@ def main():
         "window": f"{ARGO_START} to {ARGO_END}",
         "data_product": "GLORYS12V1",
     }
-    with open(OUT_DIR / "eke_eddy_test.json", "w") as f:
+    # Basin-suffix the outputs when not running atlantic, so multi-basin runs
+    # don't clobber each other.
+    suf = "" if BASIN == "atlantic" else f"_{BASIN}"
+    with open(OUT_DIR / f"eke_eddy_test{suf}.json", "w") as f:
         json.dump(out, f, indent=2)
-    print(f"\nWrote {OUT_DIR / 'eke_eddy_test.json'}")
+    print(f"\nWrote {OUT_DIR / f'eke_eddy_test{suf}.json'}")
 
     # Save the rl_mean and EKE-2deg maps too
-    rl_mean.to_netcdf(OUT_DIR / "rl_mean_2deg_glorys12.nc")
-    eke_2deg_from_native.to_netcdf(OUT_DIR / "eke_2deg_from_native.nc")
+    rl_mean.to_netcdf(OUT_DIR / f"rl_mean_2deg_glorys12{suf}.nc")
+    eke_2deg_from_native.to_netcdf(OUT_DIR / f"eke_2deg_from_native{suf}.nc")
+    # eke_native_1_12deg already written with basin suffix above (line ~218).
 
     # ------ Figure: native EKE map + 2 deg scatter -----------------------
     fig = plt.figure(figsize=(11, 4.3), constrained_layout=True)

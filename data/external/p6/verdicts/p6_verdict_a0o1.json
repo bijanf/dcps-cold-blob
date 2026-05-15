@@ -1,0 +1,5 @@
+{
+  "verdict": "deferred",
+  "reason": "DLESyM drift exceeds Cresswell-Clay 2025 bound",
+  "drift_K_per_year": 0.43567724107150096
+}

@@ -1,0 +1,10 @@
+{
+  "Q_X": 0.22954605617429422,
+  "p_perm": 0.001,
+  "tau_fit": 40.206289210238715,
+  "tau_obs_NA": 144.0,
+  "chi2_nu": 6.760446071624756,
+  "verdict": "falsified",
+  "n_cells": 1045,
+  "drift_K_per_year": null
+}

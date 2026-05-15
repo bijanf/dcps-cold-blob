@@ -108,6 +108,8 @@ def rollout_dlesym(
     checkpoint: Path,
     out_path: Path,
     era5_mirror: Path | None = None,
+    atmos_member: int = 0,
+    ocean_member: int = 0,
 ) -> Path:
     """Autoregressively roll out NVIDIA DLESyM v1 ERA5.
 
@@ -115,7 +117,8 @@ def rollout_dlesym(
     as NetCDF.  Returns the path.
     """
     from earth2studio.io import NetCDF4Backend
-    from earth2studio.models.px import DLESyM
+    from earth2studio.models.px.dlesym import DLESyMLatLon
+    from earth2studio.models.auto.package import Package
     from earth2studio.run import deterministic
     import torch
 
@@ -128,25 +131,94 @@ def rollout_dlesym(
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    package = DLESyM.load_default_package(str(checkpoint))
-    model = DLESyM.load_model(package).to("cuda")
+    # DLESyMLatLon takes raw ERA5 lat/lon variables (z300, z700, u10m, v10m,
+    # …) and derives tau300-700 and ws10m internally; base DLESyM expects
+    # pre-projected HEALPix input with the derived vars already present.
+    # ARCO/local NetCDF only provides raw vars, so we use the LatLon variant.
+    package = Package(str(checkpoint)) if checkpoint is not None \
+        else DLESyMLatLon.load_default_package()
+    model = DLESyMLatLon.load_model(
+        package,
+        atmos_model_idx=atmos_member,
+        ocean_model_idx=ocean_member,
+    ).to("cuda")
+    print(f"[P6] loaded DLESyMLatLon member (atmos={atmos_member}, "
+          f"ocean={ocean_member})", flush=True)
 
     ic_dt = datetime.fromisoformat(ic_date)
     data = _ic_source(ic_date, era5_mirror)
-    io = NetCDF4Backend(str(out_path))
 
-    # DLESyM atmosphere step is 6 h, ocean step is 48 h.  Number of atmosphere
-    # steps for ``years`` simulated years:
-    atmos_steps_per_year = 4 * 365
-    nsteps = years * atmos_steps_per_year
+    # Replace earth2studio.run.deterministic with a custom rollout.
+    # `deterministic` was designed for a uniform-shape iterator: step 0 yields
+    # the IC context (9 lead-times) while later steps yield 16 future leads,
+    # so its NetCDF4Backend buffer (sized for 16) mis-broadcasts on step 0.
+    # We iterate manually, skip the IC step, and accumulate monthly-mean SST
+    # on the model's lat/lon grid.
+    from earth2studio.data import fetch_data
 
-    deterministic(
+    in_coords = model.input_coords()
+    out_coords_step = model.output_coords(in_coords)
+    sst_idx = list(out_coords_step["variable"]).index("sst")
+    lats = np.asarray(out_coords_step["lat"], dtype=np.float64)
+    lons = np.asarray(out_coords_step["lon"], dtype=np.float64)
+    leads_per_step = len(out_coords_step["lead_time"])  # 16
+    step_hours = 6  # atmos step
+    total_hours = years * 365 * 24
+    n_outer_steps = int(np.ceil(total_hours / (leads_per_step * step_hours)))
+
+    x_ic, c_ic = fetch_data(
+        source=data,
         time=[ic_dt],
-        nsteps=nsteps,
-        prognostic=model,
-        data=data,
-        io=io,
+        variable=in_coords["variable"],
+        lead_time=in_coords["lead_time"],
+        device="cuda",
     )
+
+    print(f"[P6] custom rollout: years={years} outer_steps={n_outer_steps} "
+          f"leads_per_step={leads_per_step}", flush=True)
+
+    monthly_sum: dict[np.datetime64, np.ndarray] = {}
+    monthly_count: dict[np.datetime64, int] = {}
+
+    iterator = model.create_iterator(x_ic, c_ic)
+    # Step 0 == IC history; skip.
+    next(iterator)
+    for step in range(n_outer_steps):
+        try:
+            x_out, c_out = next(iterator)
+        except StopIteration:
+            break
+        leads = c_out["lead_time"]
+        sst = x_out[0, :, sst_idx].detach().cpu().numpy()  # (lead, lat, lon)
+        for i, lead in enumerate(leads):
+            ts = np.datetime64(ic_dt) + lead
+            month = ts.astype("datetime64[M]")
+            if month not in monthly_sum:
+                monthly_sum[month] = sst[i].astype(np.float64).copy()
+                monthly_count[month] = 1
+            else:
+                monthly_sum[month] += sst[i].astype(np.float64)
+                monthly_count[month] += 1
+        if (step + 1) % 20 == 0:
+            print(f"[P6] step {step+1}/{n_outer_steps} "
+                  f"({(step+1)*leads_per_step*step_hours/24:.1f} days simulated)",
+                  flush=True)
+
+    months = np.array(sorted(monthly_sum.keys()))
+    sst_monthly = np.stack(
+        [monthly_sum[m] / monthly_count[m] for m in months], axis=0
+    ).astype(np.float32)
+
+    da = xr.DataArray(
+        sst_monthly,
+        dims=("time", "lat", "lon"),
+        coords={"time": months.astype("datetime64[ns]"), "lat": lats, "lon": lons},
+        name="sst",
+    )
+    da.to_netcdf(str(out_path), engine="netcdf4",
+                 encoding={"sst": {"zlib": True, "complevel": 4}})
+    print(f"[P6] wrote monthly-mean SST {sst_monthly.shape} -> {out_path}",
+          flush=True)
 
     return out_path
 
@@ -156,32 +228,38 @@ def healpix_to_basin_grid(
     basin: str = "atlantic",
     var_name: str = "sst",
 ) -> xr.DataArray:
-    """Regrid HEALPix DLESyM SST to the canonical 2-degree basin grid.
+    """Regrid DLESyM SST to the canonical 2-degree basin grid.
 
-    Reuses ``regrid_basin`` from ``multi_basin_quiescence.py`` -- the
-    same cosine-latitude-weighted box mean already used for ORAS5.
+    Handles either HEALPix (flat spatial dim) or lat/lon (the format
+    emitted by the DLESyMLatLon custom rollout) automatically. Reuses
+    ``regrid_basin`` from ``multi_basin_quiescence.py``.
     """
-    import healpy as hp
-
     ds = xr.open_dataset(str(dlesym_sst_path))
     sst = ds[var_name] if var_name in ds else ds[list(ds.data_vars)[0]]
 
+    # Path A: lat/lon output (DLESyMLatLon custom rollout)
+    if "lat" in sst.dims and "lon" in sst.dims:
+        lat = sst["lat"].values.astype(np.float64)
+        lon = sst["lon"].values.astype(np.float64)
+        lon2d, lat2d = np.meshgrid(lon, lat)
+        lat_1d = lat2d.ravel()
+        lon_1d = ((lon2d.ravel() + 180.0) % 360.0) - 180.0
+        rot_lon_1d = (lon_1d - BASINS[basin]["lon_offset"]) % 360.0
+        sst_flat = sst.stack(cell=("lat", "lon")).transpose("time", "cell")
+        return regrid_basin(sst_flat, lat_1d, rot_lon_1d, basin)
+
+    # Path B: HEALPix output (native DLESyM, flat spatial dim)
+    import healpy as hp
     spatial_dim = next(d for d in sst.dims if d != "time")
     npix = sst.sizes[spatial_dim]
     nside = hp.npix2nside(npix)
-
     theta, phi = hp.pix2ang(nside, np.arange(npix))
     lat_1d = (90.0 - np.degrees(theta)).astype(np.float64)
     lon_1d = np.degrees(phi).astype(np.float64)
-    lon_1d = ((lon_1d + 180.0) % 360.0) - 180.0  # wrap to [-180, 180)
-
+    lon_1d = ((lon_1d + 180.0) % 360.0) - 180.0
     rot_lon_1d = (lon_1d - BASINS[basin]["lon_offset"]) % 360.0
-
-    # Coerce to the shape regrid_basin's caller idiom expects: arrays whose
-    # ``.ravel()`` lines up with one time slice of ``sst``.
     sst = sst.rename({spatial_dim: "cell"}).transpose("time", "cell")
-    regridded = regrid_basin(sst, lat_1d, rot_lon_1d, basin)
-    return regridded
+    return regrid_basin(sst, lat_1d, rot_lon_1d, basin)
 
 
 def _law_form(eke: np.ndarray, tau: float) -> np.ndarray:
@@ -248,10 +326,11 @@ def cross_prediction_test(
     lat_flat = lat_grid[valid]
     lon_flat = rlon_grid[valid] + BASINS[basin]["lon_offset"]
 
-    p_perm = spatial_block_permutation(
+    _perm_result = spatial_block_permutation(
         x, y, lat_flat, lon_flat,
         block_km=block_km, B=n_permutations,
     )
+    p_perm = _perm_result["p_perm"] if isinstance(_perm_result, dict) else _perm_result
 
     try:
         popt, _ = curve_fit(_law_form, y, x, p0=[TAU_OBS_NA], maxfev=5000)
@@ -295,6 +374,10 @@ def main(argv: list[str] | None = None) -> int:
                    help="Path to cached GLORYS12 EKE climatology on the "
                         "2-degree basin grid (NetCDF).")
     p.add_argument("--verdict-json", type=Path, default=Path("p6_verdict.json"))
+    p.add_argument("--atmos-member", type=int, default=0, choices=(0, 1, 2, 3),
+                   help="DLESyM atmosphere checkpoint index (0..3).")
+    p.add_argument("--ocean-member", type=int, default=0, choices=(0, 1, 2, 3),
+                   help="DLESyM ocean checkpoint index (0..3).")
     args = p.parse_args(argv)
 
     if args.mode == "smoke":
@@ -310,6 +393,8 @@ def main(argv: list[str] | None = None) -> int:
             years=args.years, ic_date=args.ic,
             checkpoint=args.checkpoint, out_path=sst_path,
             era5_mirror=args.era5_mirror,
+            atmos_member=args.atmos_member,
+            ocean_member=args.ocean_member,
         )
         with xr.open_dataset(sst_path) as raw:
             drift_k_per_year, exceeded = _validate_drift(raw, args.years)
