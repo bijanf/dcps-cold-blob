@@ -55,6 +55,7 @@ def main():
     actual_lon = rlon - 80.0
 
     fig = plt.figure(figsize=(14.5, 6.0), constrained_layout=True)
+    fig.patch.set_facecolor("white")
     gs = fig.add_gridspec(1, 5, width_ratios=[3, 0.05, 3, 0.05, 2])
     ax_eke = fig.add_subplot(gs[0, 0])
     cax_eke = fig.add_subplot(gs[0, 1])
@@ -66,6 +67,7 @@ def main():
     eke_v = eke.values
     eke_lo = max(np.nanpercentile(eke_v, 5), 1e-4)
     eke_hi = np.nanpercentile(eke_v, 99)
+    ax_eke.set_facecolor("0.85")  # land / no-data cells render as light grey
     im_eke = ax_eke.pcolormesh(
         nav_lon, nav_lat, eke_v,
         cmap="inferno", shading="auto",
@@ -80,23 +82,17 @@ def main():
                             edgecolor="white", facecolor="none",
                             linestyle="--", zorder=10)
     ax_eke.add_patch(cb_box_a)
-    ax_eke.annotate("Gulf Stream + NAC:\nhigh EKE corridor",
-                       xy=(-58, 40), xytext=(-78, 14),
-                       color="white", fontsize=10, fontweight="bold",
-                       arrowprops=dict(arrowstyle="->", color="white",
-                                          lw=2.0))
-    ax_eke.text(-49, 61, "Cold Blob box",
-                  color="white", fontsize=10, fontweight="bold")
     ax_eke.set_xlabel("Longitude")
     ax_eke.set_ylabel("Latitude")
     ax_eke.set_xlim(-80, 0)
-    ax_eke.set_ylim(0, 75)
+    ax_eke.set_ylim(15, 70)
     ax_eke.text(-0.10, 1.02, "a", transform=ax_eke.transAxes,
                   fontweight="bold", fontsize=14)
 
     # ----- panel b: 2 deg r_loc map (bilinear-shaded for visual parity
     # with panel a; the underlying data is still 2 deg) ------------------
     R = rl_2deg.values
+    ax_rl.set_facecolor("0.85")  # land / no-data cells render as light grey
     # imshow with bilinear interpolation gives smooth rendering for the
     # coarse 2 deg grid so the panel reads at the same visual fidelity
     # as the downsampled 1/12 deg panel a.
@@ -116,36 +112,39 @@ def main():
                             edgecolor="red", facecolor="none",
                             linestyle="--", zorder=10)
     ax_rl.add_patch(cb_box_b)
-    ax_rl.annotate("Cold Blob:\nhigh coherence\n(low mass throughput)",
-                       xy=(-32, 55), xytext=(-78, 12),
-                       color="white", fontsize=10, fontweight="bold",
-                       arrowprops=dict(arrowstyle="->", color="white",
-                                          lw=2.0))
-    ax_rl.text(-49, 61, "Cold Blob box",
-                  color="red", fontsize=10, fontweight="bold")
     ax_rl.set_xlabel("Longitude")
     ax_rl.set_ylabel("Latitude")
     ax_rl.set_xlim(-80, 0)
-    ax_rl.set_ylim(0, 75)
+    ax_rl.set_ylim(15, 70)
     ax_rl.text(-0.10, 1.02, "b", transform=ax_rl.transAxes,
                   fontweight="bold", fontsize=14)
 
-    # ----- panel c: scatter ---------------------------------------------
+    # ----- panel c: hexbin density + decile-mean curve ------------------
     rl_v = R.ravel()
     eke_2deg_v = eke_2deg.values.ravel()
-    m = np.isfinite(rl_v) & np.isfinite(eke_2deg_v)
+    m = np.isfinite(rl_v) & np.isfinite(eke_2deg_v) & (eke_2deg_v > 0)
     x = eke_2deg_v[m]
     y = rl_v[m]
-    ax_sc.scatter(x, y, s=10, alpha=0.45, color="C0", edgecolors="none")
-    ax_sc.set_xscale("log")
-    if x.size > 30:
-        coef = np.polyfit(np.log10(np.maximum(x, 1e-6)), y, 1)
-        xline = np.logspace(np.log10(np.nanmin(x[x > 0])),
-                              np.log10(np.nanmax(x)), 50)
-        ax_sc.plot(xline, np.polyval(coef, np.log10(xline)),
-                       color="C3", linewidth=2.5)
-    ax_sc.set_xlabel("EKE 1/12$^{\\circ}\\rightarrow$2$^{\\circ}$ "
-                        "(m$^{2}$/s$^{2}$)")
+    log_x = np.log10(x)
+
+    # Hexbin shows where the data cloud lives.
+    hb = ax_sc.hexbin(log_x, y, gridsize=30, cmap="Blues",
+                       mincnt=1, linewidths=0.0)
+
+    # Decile-mean curve: 12 equal log-EKE bins, mean r_loc per bin.
+    n_bins = 12
+    bin_edges = np.linspace(log_x.min(), log_x.max(), n_bins + 1)
+    bin_centres = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+    bin_means = np.full(n_bins, np.nan)
+    for i in range(n_bins):
+        sel = (log_x >= bin_edges[i]) & (log_x < bin_edges[i + 1])
+        if sel.sum() >= 4:
+            bin_means[i] = y[sel].mean()
+    ax_sc.plot(bin_centres, bin_means, color="C3", linewidth=2.5,
+                marker="o", markersize=4, label="decile mean")
+
+    ax_sc.set_xlabel(r"$\log_{10}$ EKE 1/12$^{\circ}\!\to\!2^{\circ}$"
+                        r" (m$^{2}$/s$^{2}$)")
     ax_sc.set_ylabel(r"$\langle r_{\mathrm{loc}}\rangle_t$")
     # rho and n live in the caption per the project figure-quality
     # standard; no in-plot statistics text box.

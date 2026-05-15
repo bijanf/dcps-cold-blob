@@ -33,7 +33,14 @@ from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style
 apply_nature_style()
 
-from dcps.scripts.toy_kuramoto import (
+# Sibling-script import: add this file's directory to sys.path so
+# `from toy_kuramoto import ...` resolves regardless of where the
+# script is invoked from.  This replaces the previous broken
+# `from dcps.scripts.toy_kuramoto import ...` (dcps.scripts is not a
+# Python package).
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from toy_kuramoto import (  # noqa: E402
     NY, NX, K, SIGMA_OMEGA, NOISE_BASE, NOISE_SCALE, RADIUS_CELLS,
     DT_YR, T_MONTHS, load_eke_field_for_toy_grid, local_r_2d,
 )
@@ -151,40 +158,54 @@ def main():
     fig = plt.figure(figsize=(13.0, 7.5), constrained_layout=True)
     gs = fig.add_gridspec(2, 4)
 
+    # Panel-letter helper: bold corner letter OUTSIDE each axis, no bbox,
+    # matching the convention used in figs 1, 4 and SI of this manuscript.
+    def _panel(ax, label, dx=-0.18):
+        ax.text(dx, 1.02, label, transform=ax.transAxes,
+                fontsize=14, fontweight="bold", va="bottom", ha="left")
+
+    # Common colorbar arguments: short bar (shrink=0.55) sitting tight
+    # next to its parent axis (pad=0.02) so the colorbars do not dwarf
+    # the 24x24 maps the way the constrained-layout default did.
+    _CB = dict(shrink=0.55, pad=0.02)
+
     ax_f2 = fig.add_subplot(gs[0, 0])
     im0 = ax_f2.imshow(F2, cmap="inferno", origin="lower",
                         interpolation="bilinear")
-    plt.colorbar(im0, ax=ax_f2, label="$F^2$ (EKE proxy)")
+    plt.colorbar(im0, ax=ax_f2, label="$F^2$ (EKE proxy)", **_CB)
     ax_f2.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                    linewidths=1.0)
-    ax_f2.set_title("a. EKE field with patch outlined", fontsize=11)
+    _panel(ax_f2, "a")
 
     ax_c = fig.add_subplot(gs[0, 1])
     vmin = min(rl_ctrl.min(), rl_null.min())
     vmax = max(rl_ctrl.max(), rl_null.max())
     im1 = ax_c.imshow(rl_ctrl, cmap="viridis", origin="lower",
                        vmin=vmin, vmax=vmax, interpolation="bilinear")
-    plt.colorbar(im1, ax=ax_c, label=r"$\langle r_{\mathrm{loc}}\rangle_t$")
+    plt.colorbar(im1, ax=ax_c, label=r"$\langle r_{\mathrm{loc}}\rangle_t$",
+                  **_CB)
     ax_c.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                   linewidths=1.0)
-    ax_c.set_title("b. CONTROL coherence", fontsize=11)
+    _panel(ax_c, "b")
 
     ax_n = fig.add_subplot(gs[0, 2])
     im2 = ax_n.imshow(rl_null, cmap="viridis", origin="lower",
                        vmin=vmin, vmax=vmax, interpolation="bilinear")
-    plt.colorbar(im2, ax=ax_n, label=r"$\langle r_{\mathrm{loc}}\rangle_t$")
+    plt.colorbar(im2, ax=ax_n, label=r"$\langle r_{\mathrm{loc}}\rangle_t$",
+                  **_CB)
     ax_n.contour(patch_mask.astype(float), levels=[0.5], colors="white",
                   linewidths=1.0)
-    ax_n.set_title("c. EDDY-NULL coherence", fontsize=11)
+    _panel(ax_n, "c")
 
     ax_d = fig.add_subplot(gs[0, 3])
     dmax = float(np.nanmax(np.abs(delta_r_map)))
     im3 = ax_d.imshow(delta_r_map, cmap="RdBu_r", origin="lower",
                        vmin=-dmax, vmax=dmax, interpolation="bilinear")
-    plt.colorbar(im3, ax=ax_d, label=r"$\Delta r_{\mathrm{loc}}$ (NULL$-$CTRL)")
+    plt.colorbar(im3, ax=ax_d,
+                  label=r"$\Delta r_{\mathrm{loc}}$ (NULL$-$CTRL)", **_CB)
     ax_d.contour(patch_mask.astype(float), levels=[0.5], colors="black",
                   linewidths=1.0)
-    ax_d.set_title("d. Coherence response", fontsize=11)
+    _panel(ax_d, "d")
 
     ax_bs = fig.add_subplot(gs[1, :2])
     ax_bs.hist(deltas, bins=12, color="C2", edgecolor="black", alpha=0.7)
@@ -194,13 +215,9 @@ def main():
                    label=f"95% CI ({ci95[0]:+.3f}, {ci95[1]:+.3f})")
     ax_bs.set_xlabel(r"in-patch $\overline{\Delta r_{\mathrm{loc}}}$ per seed")
     ax_bs.set_ylabel("ensemble count")
-    ax_bs.set_title(
-        f"e. Bootstrap over {N_SEED} seeds: "
-        f"$t = {t_stat:.1f}$ vs zero",
-        fontsize=11,
-    )
-    ax_bs.legend(loc="upper left", fontsize=9)
+    ax_bs.legend(loc="upper right", fontsize=9)
     ax_bs.grid(alpha=0.3)
+    _panel(ax_bs, "e", dx=-0.08)
 
     ax_box = fig.add_subplot(gs[1, 2:])
     r_lo_ctrl = rl_ctrl[~patch_mask]
@@ -214,11 +231,8 @@ def main():
     for patch, c in zip(bp["boxes"], ["#bbbbbb", "#d6604d", "#92c5de"]):
         patch.set_facecolor(c)
     ax_box.set_ylabel(r"cell-wise $\langle r_{\mathrm{loc}}\rangle_t$")
-    ax_box.set_title(
-        "f. Coherence recovers in the patch when noise is removed",
-        fontsize=11,
-    )
     ax_box.grid(alpha=0.3, axis="y")
+    _panel(ax_box, "f", dx=-0.08)
 
     fig.savefig(MANUSCRIPT_FIGS / "fig_toy_kuramoto_causal.pdf")
     plt.close(fig)
