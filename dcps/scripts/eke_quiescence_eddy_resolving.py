@@ -202,12 +202,12 @@ def main():
 
     t0 = time.time()
     print(f"\nLoading GLORYS12 SSH (zos) at native 1/12 deg, {ARGO_START}..{ARGO_END}")
-    ssh = load_glorys12_var("ssh", start=ARGO_START, end=ARGO_END)
+    ssh = load_glorys12_var("ssh", start=ARGO_START, end=ARGO_END, basin=BASIN)
     print(f"  SSH shape: {tuple(ssh.sizes.values())} in {time.time()-t0:.1f}s")
 
     t0 = time.time()
     print(f"\nLoading GLORYS12 SST (thetao surface) at native 1/12 deg")
-    sst = load_glorys12_var("sst", start=ARGO_START, end=ARGO_END)
+    sst = load_glorys12_var("sst", start=ARGO_START, end=ARGO_END, basin=BASIN)
     print(f"  SST shape: {tuple(sst.sizes.values())} in {time.time()-t0:.1f}s")
 
     # ------ EKE on native 1/12 deg ---------------------------------------

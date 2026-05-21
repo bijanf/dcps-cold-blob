@@ -61,6 +61,34 @@ def _na_mask_2d(nav_lat: xr.DataArray, nav_lon: xr.DataArray) -> xr.DataArray:
     )
 
 
+# Basin masks for the multi-basin GLORYS12 EKE pipeline.  Mirrors the
+# BASINS registry in ``dcps/scripts/multi_basin_quiescence.py`` but
+# expressed as a 2-D mask on (nav_lat, nav_lon) rather than as a
+# longitude-rotation rule.
+_BASIN_MASK_PARAMS = {
+    "atlantic": {"lat": (0.0, 75.0), "lon_offset": -80.0, "lon_extent": 80.0},
+    "pacific":  {"lat": (0.0, 60.0), "lon_offset": 130.0, "lon_extent": 110.0},
+    "southern": {"lat": (-65.0, -45.0), "lon_offset": 130.0, "lon_extent": 160.0},
+}
+
+
+def _basin_mask_2d(nav_lat: xr.DataArray, nav_lon: xr.DataArray,
+                     basin: str) -> xr.DataArray:
+    """Boolean mask in (y, x) that selects cells inside ``basin``.
+
+    Uses the same longitude-rotation trick as
+    ``multi_basin_quiescence.rotated_lon`` so that basins which cross
+    the dateline are contiguous in the rotated coordinate.
+    """
+    p = _BASIN_MASK_PARAMS[basin]
+    lat_min, lat_max = p["lat"]
+    rot_lon = (nav_lon - p["lon_offset"]) % 360.0
+    return (
+        (nav_lat >= lat_min) & (nav_lat <= lat_max)
+        & (rot_lon >= 0) & (rot_lon <= p["lon_extent"])
+    )
+
+
 # -----------------------------------------------------------------------------
 #   ORAS5  (re-export the existing loader unchanged in spirit)
 # -----------------------------------------------------------------------------
@@ -107,11 +135,16 @@ GLORYS12_VARS = {"sst": ("thetao", 0), "ssh": ("zos", None)}   # (var, depth_ind
 
 def load_glorys12_var(
     alias: str, start: str = TIME_START, end: str = TIME_END,
+    basin: str = "atlantic",
 ) -> xr.DataArray:
-    """Load GLORYS12 surface SST (thetao depth=0) or SSH (zos), NA-masked.
+    """Load GLORYS12 surface SST (thetao depth=0) or SSH (zos), basin-masked.
 
     The GLORYS12 yearly files store full 3-D thetao; we slice ``depth=0`` for
     SST. ``zos`` is already 2-D.
+
+    ``basin`` selects the geographic mask applied to the returned field.
+    Supported values: ``"atlantic"`` (the manuscript NA domain;
+    default for back-compat), ``"pacific"``, ``"southern"``.
     """
     if alias not in GLORYS12_VARS:
         raise ValueError(f"GLORYS12 alias {alias!r} not in {list(GLORYS12_VARS)}")
@@ -145,7 +178,11 @@ def load_glorys12_var(
         lon_1d = ds0["longitude"].values
     nav_lat, nav_lon = _broadcast_2d_coords(lat_1d, lon_1d)
     da = da.assign_coords(nav_lat=nav_lat, nav_lon=nav_lon)
-    return da.where(_na_mask_2d(nav_lat, nav_lon))
+    if basin == "atlantic":
+        mask = _na_mask_2d(nav_lat, nav_lon)
+    else:
+        mask = _basin_mask_2d(nav_lat, nav_lon, basin)
+    return da.where(mask)
 
 
 # -----------------------------------------------------------------------------

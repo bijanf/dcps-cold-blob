@@ -51,6 +51,17 @@ credentials.json
 token.json
 secrets/
 .aws/
+# Local CEDA credential install script - NEVER commit
+add_ceda_to_netrc.sh
+*.netrc
+.netrc
+
+# Background-process logs (may contain Pangeo URLs or auth artefacts)
+logs/
+
+# External-drive symlink and large external dataset mirrors
+data/external_drive/
+data/external/
 
 # P6 PIK bundle staging area (canonical files copied into data/external/p6/)
 p6_results/

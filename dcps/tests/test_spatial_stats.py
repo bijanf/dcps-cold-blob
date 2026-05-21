@@ -11,7 +11,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from dcps.spatial_stats import spatial_block_permutation
+from dcps.spatial_stats import (
+    spatial_block_permutation,
+    spatial_block_bootstrap,
+)
 
 
 def _grf(rng, lat, lon, length_km=600.0):
@@ -163,3 +166,70 @@ def test_too_few_cells_returns_nan():
     res = spatial_block_permutation(x, y, lat, lon, block_km=500.0, B=10, seed=0)
     assert np.isnan(res["rho_observed"])
     assert np.isnan(res["p_perm"])
+
+
+# -----------------------------------------------------------------------------
+#   Bootstrap CI tests
+# -----------------------------------------------------------------------------
+
+def test_bootstrap_calibration():
+    """Under H0 (independent autocorrelated fields, true rho = 0), the 95%
+    Fisher-z CI must contain 0 in >= 85% of trials.
+
+    Calibration depends on the ratio of block diameter to the field's
+    autocorrelation length.  The bootstrap CI is trustworthy when blocks
+    are large enough to decouple — empirically a ratio of >= 5x is
+    required for >= 0.85 coverage with the greedy
+    ``make_spatial_blocks`` partition (which produces ~2-3 cells per
+    block at the ratio of 2.5x at which the permutation test is
+    well-calibrated).  We therefore test at block_km=1500 against a
+    200-km autocorrelation length (ratio 7.5x), and use block_km=1500
+    in production for Plot 3 CIs.  60 trials at B=300.
+    """
+    lat, lon = _na_like_grid(d_deg=2.0)
+    n_trials = 60
+    base_rng = np.random.default_rng(2026)
+    contains_zero = 0
+    for _ in range(n_trials):
+        rng = np.random.default_rng(base_rng.integers(0, 2**31 - 1))
+        x = _grf(rng, lat, lon, length_km=200.0)
+        y = _grf(rng, lat, lon, length_km=200.0)
+        res = spatial_block_bootstrap(
+            x, y, lat, lon, block_km=1500.0, B=300,
+            seed=int(rng.integers(0, 2**31 - 1)),
+        )
+        if res["ci_low"] <= 0.0 <= res["ci_high"]:
+            contains_zero += 1
+    coverage = contains_zero / n_trials
+    assert coverage >= 0.85, (
+        f"Fisher-z CI coverage {coverage:.2f} fell below 0.85 at "
+        f"block_km=1500 / autocorr=200km."
+    )
+
+
+def test_bootstrap_strong_correlation_excludes_zero():
+    """When y = x + small_noise, the 95% bootstrap CI must exclude 0."""
+    lat, lon = _na_like_grid(d_deg=4.0)
+    rng = np.random.default_rng(42)
+    x = _grf(rng, lat, lon, length_km=600.0)
+    y = x + 0.1 * rng.standard_normal(x.size)
+    res = spatial_block_bootstrap(
+        x, y, lat, lon, block_km=500.0, B=500, seed=1,
+    )
+    assert res["ci_low"] > 0.0, (
+        f"Strong-correlation CI [{res['ci_low']:.3f}, {res['ci_high']:.3f}] "
+        f"unexpectedly contains 0"
+    )
+    assert res["rho_observed"] > 0.9
+
+
+def test_bootstrap_ci_brackets_observed():
+    """The point estimate (block-mean rho) must lie inside its own CI."""
+    lat, lon = _na_like_grid(d_deg=4.0)
+    rng = np.random.default_rng(7)
+    x = _grf(rng, lat, lon, length_km=600.0)
+    y = 0.5 * x + 0.5 * rng.standard_normal(x.size)
+    res = spatial_block_bootstrap(
+        x, y, lat, lon, block_km=500.0, B=400, seed=3,
+    )
+    assert res["ci_low"] <= res["rho_observed"] <= res["ci_high"]

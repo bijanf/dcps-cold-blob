@@ -65,6 +65,11 @@ BASINS = {
         "label": "Southern Ocean (Pacific sector ACC)", "color": "C2",
         "lon_display": (130, -70),
     },
+    "indian": {                        # 30E..130E, tropics-subtropics
+        "lat": (-25.0, 25.0), "lon_offset": 30.0, "lon_extent": 100.0,
+        "label": "Indian Ocean (tropical-subtropical)", "color": "C3",
+        "lon_display": (30, 130),
+    },
 }
 
 

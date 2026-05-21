@@ -270,14 +270,21 @@ def main():
     print(f"\nWrote {OUT_DIR / 'eke_test.json'}")
 
     # ----- Figure: per-basin EKE map + scatter --------------------------
-    n_basin = len(results)
+    # Restrict the main-text figure to the three basins referenced in the
+    # manuscript (Atlantic, Pacific, Southern Ocean). Any additional basins
+    # (e.g. Indian, from the multi-basin sweep) are reported in the table
+    # above but plotted in a separate SI figure to keep panel labels a-i.
+    FIG_BASINS = ("atlantic", "pacific", "southern")
+    fig_results = {b: results[b] for b in FIG_BASINS if b in results}
+    n_basin = len(fig_results)
     fig, axes = plt.subplots(n_basin, 3, figsize=(11.5, 2.6 * n_basin),
                               constrained_layout=True)
     panel_idx = 0
-    for row, (b, r) in enumerate(results.items()):
+    for row, (b, r) in enumerate(fig_results.items()):
         # EKE map
         ax = axes[row, 0]
-        im = ax.pcolormesh(r["EKE"].rlon, r["EKE"].lat, r["EKE"].values,
+        eke_da = r["EKE"]
+        im = ax.pcolormesh(eke_da.rlon, eke_da.lat, eke_da.values,
                             cmap="magma", shading="auto")
         plt.colorbar(im, ax=ax, label="EKE (m$^2$/s$^2$)")
         ax.text(-0.18, 1.03, chr(97 + panel_idx),
@@ -286,6 +293,22 @@ def main():
         panel_idx += 1
         ax.set_ylabel("Latitude")
         ax.set_xlabel("Rotated longitude")
+        # Trim axes to the data extent so the equatorial mask and land
+        # gaps don't leave large empty strips at the basin edges.
+        finite_mask = np.isfinite(eke_da.values)
+        if finite_mask.any():
+            lat_v = eke_da.lat.values
+            lon_v = eke_da.rlon.values
+            lat_has = finite_mask.any(axis=1)
+            lon_has = finite_mask.any(axis=0)
+            lat_present = lat_v[lat_has]
+            lon_present = lon_v[lon_has]
+            dlat = float(np.abs(np.diff(lat_v).mean())) if lat_v.size > 1 else 1.0
+            dlon = float(np.abs(np.diff(lon_v).mean())) if lon_v.size > 1 else 1.0
+            ax.set_ylim(lat_present.min() - 0.5 * dlat,
+                        lat_present.max() + 0.5 * dlat)
+            ax.set_xlim(lon_present.min() - 0.5 * dlon,
+                        lon_present.max() + 0.5 * dlon)
         # r_loc vs EKE
         ax = axes[row, 1]
         rl_v = r["rl_mean"].values.ravel()

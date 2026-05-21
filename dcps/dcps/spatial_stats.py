@@ -239,8 +239,146 @@ def morans_i(field, lat, lon, k_neighbours=8):
     return float(I), float(E_I), int(n_eff)
 
 
+def spatial_block_bootstrap(x, y, lat, lon, block_km=1500.0, B=1000, seed=0,
+                              ci=95.0):
+    """Spatial-block confidence interval for Pearson rho.
+
+    Companion to ``spatial_block_permutation``.  The permutation routine
+    answers "is rho different from zero, accounting for spatial
+    autocorrelation?".  This routine answers "what is the uncertainty
+    band of the observed rho, accounting for spatial autocorrelation?".
+
+    Strategy
+    --------
+    1. Partition cells into spatial blocks (same construction as
+       ``make_spatial_blocks``; block diameter must exceed the field's
+       autocorrelation length so that distinct blocks can be treated
+       as approximately independent units).
+    2. Reduce each block to its block-mean ``(xb, yb)`` pair so the
+       bootstrap unit matches the unit of approximate independence.
+    3. **Primary CI** (``ci_low``, ``ci_high``): Fisher z-transform
+       confidence interval with effective sample size = ``n_eff``
+       (the number of non-empty blocks).  This is the textbook CI
+       for a Pearson correlation and is asymptotically valid for any
+       true rho.  Using ``n_eff`` (not ``n_cells``) accounts for the
+       loss of degrees of freedom from spatial autocorrelation.
+    4. **Sanity check** (``rho_boot``): also resample ``n_eff`` block-mean
+       pairs WITH REPLACEMENT, ``B`` times, and recompute the Pearson
+       rho on each resample.  The percentile interval on
+       ``arctanh(rho_boot)`` (Fisher z space) is also returned for
+       comparison, but coverage at small ``n_eff`` is anti-conservative
+       for the percentile bootstrap, so the Fisher-z parametric CI is
+       what the published figures use.
+
+    The same block-construction as ``spatial_block_permutation`` is used
+    so that the two routines are internally consistent.
+
+    Parameters
+    ----------
+    x, y     : 1-D arrays of cell-wise values (NaNs allowed; filtered).
+    lat, lon : 1-D arrays of cell coordinates (same length as x, y).
+    block_km : block diameter in km (default 1500).  For trustworthy
+               CI coverage the block_km should be at least ~5x the
+               field's autocorrelation length; the greedy block
+               construction in ``make_spatial_blocks`` produces only
+               ~2-3 cells per block at smaller ratios, which leaves
+               residual within-block autocorrelation and underestimates
+               the rho variance.  See
+               ``test_spatial_stats.test_bootstrap_calibration``.
+    B        : number of bootstrap replicates.
+    seed     : RNG seed.
+    ci       : confidence level in percent (default 95).
+
+    Returns
+    -------
+    dict with:
+      rho_observed : block-mean Pearson rho on the observed data
+                     (the point estimate the CI is around).
+      rho_cells    : full-resolution cell-wise Pearson rho (descriptive).
+      ci_low       : lower bound of the bootstrap CI on rho.
+      ci_high      : upper bound of the bootstrap CI on rho.
+      rho_boot     : ndarray of B bootstrap rho values.
+      n_cells, n_blocks, n_eff : sample-size diagnostics.
+    """
+    x = np.asarray(x, dtype=float).ravel()
+    y = np.asarray(y, dtype=float).ravel()
+    lat = np.asarray(lat, dtype=float).ravel()
+    lon = np.asarray(lon, dtype=float).ravel()
+    valid = np.isfinite(x) & np.isfinite(y) & np.isfinite(lat) & np.isfinite(lon)
+    x, y = x[valid], y[valid]
+    lat, lon = lat[valid], lon[valid]
+
+    if x.size < 10:
+        return dict(rho_observed=float("nan"), rho_cells=float("nan"),
+                    ci_low=float("nan"), ci_high=float("nan"),
+                    n_cells=int(x.size), n_blocks=0, n_eff=0,
+                    rho_boot=np.array([]))
+
+    rho_cells = float(np.corrcoef(x, y)[0, 1])
+    block_id = make_spatial_blocks(lat, lon, block_km=block_km)
+    n_blocks = int(block_id.max() + 1)
+
+    xb = np.full(n_blocks, np.nan)
+    yb = np.full(n_blocks, np.nan)
+    for b in range(n_blocks):
+        cells = np.where(block_id == b)[0]
+        if cells.size:
+            xb[b] = x[cells].mean()
+            yb[b] = y[cells].mean()
+    finite = np.isfinite(xb) & np.isfinite(yb)
+    xb_v = xb[finite]
+    yb_v = yb[finite]
+    n_eff = int(finite.sum())
+
+    if n_eff < 4:
+        return dict(rho_observed=rho_cells, rho_cells=rho_cells,
+                    ci_low=float("nan"), ci_high=float("nan"),
+                    n_cells=int(x.size), n_blocks=n_blocks, n_eff=n_eff,
+                    rho_boot=np.array([]))
+
+    rho_observed = float(np.corrcoef(xb_v, yb_v)[0, 1])
+
+    # ---- Primary Fisher-z parametric CI ------------------------------
+    # Effective sample size = n_eff (number of non-empty blocks); the
+    # Fisher z transform stabilises the variance of rho.
+    from scipy.stats import norm
+    alpha_tail = (100.0 - ci) / 2.0 / 100.0
+    z_crit = float(norm.ppf(1.0 - alpha_tail))
+    if n_eff > 3:
+        z_obs = float(np.arctanh(np.clip(rho_observed, -0.999999, 0.999999)))
+        se_z = 1.0 / np.sqrt(n_eff - 3)
+        ci_low = float(np.tanh(z_obs - z_crit * se_z))
+        ci_high = float(np.tanh(z_obs + z_crit * se_z))
+    else:
+        ci_low = ci_high = float("nan")
+
+    # ---- Bootstrap distribution (sanity / alternative view) ----------
+    rng = np.random.default_rng(seed)
+    rho_boot = np.empty(B)
+    for b in range(B):
+        idx = rng.integers(0, n_eff, size=n_eff)
+        xs = xb_v[idx]
+        ys = yb_v[idx]
+        if xs.std() == 0 or ys.std() == 0:
+            rho_boot[b] = np.nan
+        else:
+            rho_boot[b] = float(np.corrcoef(xs, ys)[0, 1])
+
+    return dict(
+        rho_observed=rho_observed,
+        rho_cells=rho_cells,
+        ci_low=ci_low,
+        ci_high=ci_high,
+        n_cells=int(x.size),
+        n_blocks=n_blocks,
+        n_eff=n_eff,
+        rho_boot=rho_boot,
+    )
+
+
 __all__ = [
     "spatial_block_permutation",
+    "spatial_block_bootstrap",
     "make_spatial_blocks",
     "subpolar_gyre_mask",
     "gulf_stream_pathway_mask",
