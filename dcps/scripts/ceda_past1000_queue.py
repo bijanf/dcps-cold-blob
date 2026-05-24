@@ -98,7 +98,7 @@ def main():
                      if not _cache_is_good(_cache_path(model, mem,
                                                          args.basin))]
         if not remaining:
-            print(f"\nall targets cached; queue complete.")
+            print("\nall targets cached; queue complete.")
             break
         print(f"\n=== pass {pass_idx}/{MAX_PASSES}  remaining "
               f"{len(remaining)}/{len(TARGETS)} ===")
@@ -108,7 +108,7 @@ def main():
             print(f"\n[pass {pass_idx} {i + 1}/{len(remaining)}]  "
                   f"{target_id}")
             if _cache_is_good(cache):
-                print(f"  cached & nonempty -> skip")
+                print("  cached & nonempty -> skip")
                 continue
             if cache.exists():
                 print(f"  removing previous empty cache: {cache}")

@@ -39,7 +39,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
-from scipy.stats import pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style
@@ -47,12 +46,10 @@ apply_nature_style()
 
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
 from multi_basin_quiescence import (
-    BASINS,
     load_oras5_basin,
     regrid_basin,
     preprocess_anomaly,
     instantaneous_phase,
-    local_r_mean,
 )
 
 
@@ -156,14 +153,14 @@ def compute_r_loc_timeseries(basin="atlantic"):
     """Compute r_loc(t) as a 3-D (time, lat, rlon) field for the NA basin."""
     print(f"\nLoading ORAS5 SST for {basin}")
     sst, lat2d, rlon2d = load_oras5_basin("sosstsst", basin)
-    print(f"  regridding to 2 deg basin grid")
+    print("  regridding to 2 deg basin grid")
     sst_rg = regrid_basin(sst, lat2d, rlon2d, basin)
     print("  preprocess anomaly + Hilbert")
     sst_anom = preprocess_anomaly(sst_rg)
     phi = instantaneous_phase(sst_anom)
     n_t = phi.sizes["time"]
     phi = phi.isel(time=slice(6, n_t - 6))
-    print(f"  computing local r_loc time series (no time mean)")
+    print("  computing local r_loc time series (no time mean)")
     # Use local_r_mean modified to keep time dimension
     return _local_r_with_time(phi, radius_km=500.0)
 
@@ -297,7 +294,7 @@ def main():
     mean_var_amo = float(np.nanmean(var_amoonly))
     mean_var_joint = float(np.nanmean(var_joint))
 
-    print(f"\nMean cell-wise variance explained:")
+    print("\nMean cell-wise variance explained:")
     print(f"  NAO alone : {100*mean_var_nao:5.2f}%")
     print(f"  AMO alone : {100*mean_var_amo:5.2f}%")
     print(f"  NAO+AMO   : {100*mean_var_joint:5.2f}%")

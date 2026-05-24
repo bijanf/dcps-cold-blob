@@ -32,7 +32,6 @@ import numpy as np
 import xarray as xr
 from scipy.signal import butter, filtfilt
 from scipy.signal import hilbert as scipy_hilbert
-from scipy.stats import pearsonr
 
 REPO = Path("/home/bijanf/Documents/NEW_Theory")
 sys.path.insert(0, str(REPO / "dcps"))

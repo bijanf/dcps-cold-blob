@@ -24,7 +24,6 @@ from scipy.optimize import curve_fit
 # script is run from. This avoids hard-coded absolute paths.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from multi_basin_quiescence import (  # noqa: E402
-    BASINS,
     instantaneous_phase,
     local_r_mean,
     preprocess_anomaly,

@@ -298,7 +298,7 @@ def main():
                         and sen_paleo_per_kyr < 0)
 
     print()
-    print(f"  H1*-b-Δlat-paleo (0-5 ka contrast):")
+    print("  H1*-b-Δlat-paleo (0-5 ka contrast):")
     print(f"     MK z = {z_paleo:+.3f}, p = {p_paleo:.4f}")
     print(f"     Sen slope = {sen_paleo_per_kyr:+.4f} °C/kyr  "
           f"95% CI [{paleo_lo:+.4f}, {paleo_hi:+.4f}]")
@@ -344,7 +344,7 @@ def main():
     print(f"     => 'missing warming' in subpolar = "
           f"{st_per_century - sp_per_century:+.3f} °C/century")
     print()
-    print(f"  H1*-b-anthro (contrast subpolar-subtropical, 1870-2023):")
+    print("  H1*-b-anthro (contrast subpolar-subtropical, 1870-2023):")
     print(f"     MK z = {z_a:+.3f}, p = {p_a:.4f}")
     print(f"     Sen slope = {sen_a_per_kyr:+.2f} °C/kyr  "
           f"(= {sen_a_per_year*100:+.3f} °C/century)")
@@ -379,7 +379,7 @@ def main():
           f" {anthro_missing_warming_per_kyr:+.3f} °C/kyr equivalent")
     print(f"  Ratio (Anthropocene / late Holocene): "
           f"{ratio:.1f}x")
-    print(f"  Pre-registered acceleration threshold: 5.0x")
+    print("  Pre-registered acceleration threshold: 5.0x")
     print(f"  Verdict (>=5x with both base tests SUPPORTED): "
           f"{'SUPPORTED' if accel_supported else 'NOT SUPPORTED'}")
 
@@ -471,7 +471,7 @@ def main():
 
     ax = axes[1]
     ax.plot(years, contrast_anthro_anom, color="C3", lw=1.6,
-            label=f"contrast (subpolar - subtropical), 1958-2023 anomaly")
+            label="contrast (subpolar - subtropical), 1958-2023 anomaly")
     coef = np.polyfit(years, contrast_anthro_anom, 1)
     ax.plot(years, np.polyval(coef, years), color="C3", lw=1.0, linestyle="--",
             label=f"fit ({sen_a_per_year*100:+.2f} °C/century, "

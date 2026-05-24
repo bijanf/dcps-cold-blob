@@ -18,7 +18,6 @@ Output: manuscript/figs/fig_ssp245_scenario_sweep.pdf
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

@@ -10,7 +10,6 @@ levels.  Equatorial geostrophic mask |lat| < 15 deg applied.
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

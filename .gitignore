@@ -86,33 +86,26 @@ p6_bundle.tar.gz
 manuscript-bundle-*.zip
 manuscript-bundle-README.md
 
-# Tool/assistant artefacts - never commit any conversation, session,
-# planning, or tooling output. Belt and suspenders so future automation
-# cannot accidentally leak working notes into the public repo.
-.claude/
-.claude*
-CLAUDE.md
-.gemini/
-GEMINI.md
-.cursor/
-.anthropic/
-.openai/
-*.claude.md
-*.gemini.md
+# Working notes, scratch markdown, and conversation transcripts.
+# Generic patterns — keep working notes out of public history.
 *conversation*.md
 *session*.md
 *transcript*.md
 *chat*.md
 *handoff*.md
-# Bundle dumps produced by repo-context tools (repomix etc.)
-repomix-output.*
+*notes*.md
+*scratch*.md
+*draft*.md
+.local-config/
+.local-tools/
+*-output.xml
 
-# Local workspace symlink to the private manuscript repo
-# (`ln -s ../coldblob-manuscript/manuscript manuscript`). Figure-writing
-# scripts resolve `manuscript/figs/...` through this symlink when both
-# repos are checked out side by side. Never tracked in the public repo.
+# Local workspace symlink to the manuscript working tree (when present).
+# Figure-writing scripts resolve `manuscript/figs/...` through this
+# symlink; the link itself is a per-machine convenience and is never
+# tracked in this repo.
 /manuscript
 /manuscript/
 
-# Companion-paper LaTeX sources (live in the private manuscript repo)
+# Companion-paper sources (live outside this repo).
 quiescence_toolkit/paper/

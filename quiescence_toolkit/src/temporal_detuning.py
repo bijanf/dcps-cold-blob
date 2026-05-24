@@ -30,15 +30,12 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import xarray as xr
 from scipy.signal import hilbert as scipy_hilbert
-from scipy.signal import butter, filtfilt
 from scipy.stats import pearsonr
 
 PKG_ROOT = Path("/home/bijanf/Documents/NEW_Theory/dcps")
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
 from multi_basin_quiescence import (
-    BASINS,
     load_oras5_basin,
     regrid_basin,
     preprocess_anomaly,
@@ -89,7 +86,7 @@ def main():
         phi_unwrap = np.unwrap(phi_v, axis=0)
         omega_v = np.gradient(phi_unwrap, 1.0 / 12.0, axis=0)  # cycles/yr * 2pi
         omega[:, valid] = (omega_v / (2 * np.pi)).astype(np.float32)
-    print(f"  computed instantaneous frequencies (omega_i in cycles/yr)")
+    print("  computed instantaneous frequencies (omega_i in cycles/yr)")
 
     # Basin R(t) and spatial sigma^2_omega(t) on a 60-month sliding window.
     window_months = 60

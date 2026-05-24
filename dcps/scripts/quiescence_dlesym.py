@@ -21,8 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -116,10 +115,8 @@ def rollout_dlesym(
     Writes monthly-mean SST on the native HEALPix grid to ``out_path``
     as NetCDF.  Returns the path.
     """
-    from earth2studio.io import NetCDF4Backend
     from earth2studio.models.px.dlesym import DLESyMLatLon
     from earth2studio.models.auto.package import Package
-    from earth2studio.run import deterministic
     import torch
 
     if not torch.cuda.is_available():

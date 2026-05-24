@@ -15,7 +15,6 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -102,7 +101,7 @@ def process_one_product(product: str) -> dict | None:
     R_ds = xr.merge(list(out["R_variants"].values()), compat="override")
     R_ds.attrs["product"] = product
     R_ds.to_netcdf(p2, encoding={v: {"zlib": True} for v in R_ds.data_vars})
-    print(f"  R(t) variants: " + ", ".join(
+    print("  R(t) variants: " + ", ".join(
         f"{k}={float(v.mean()):.3f}" for k, v in out["R_variants"].items()
     ))
 

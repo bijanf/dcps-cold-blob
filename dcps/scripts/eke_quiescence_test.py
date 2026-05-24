@@ -40,7 +40,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from scipy.signal import hilbert as scipy_hilbert
 from scipy.stats import pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
@@ -56,7 +55,6 @@ from multi_basin_quiescence import (
     preprocess_anomaly,
     instantaneous_phase,
     local_r_mean,
-    rotated_lon,
 )
 
 

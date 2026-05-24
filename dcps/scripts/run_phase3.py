@@ -11,7 +11,6 @@ Outputs:
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -68,7 +67,7 @@ def main():
     h2 = test_h2(phase2.r_loc_sst)
     print(f"  fraction of years passing both thresholds: {h2.fraction_years_passing:.2f}")
     print(f"  pass_h2 = {h2.pass_h2}")
-    print(f"  per-year areas (km^2):")
+    print("  per-year areas (km^2):")
     for y in sorted(h2.a_inc_per_year):
         print(f"    {y}: A_inc(CB) = {h2.a_inc_per_year[y]:.2e}, "
               f"A_coh(ST) = {h2.a_coh_per_year[y]:.2e}")
@@ -172,8 +171,8 @@ def main():
     )
     ax.set_xlabel("year"); ax.set_ylabel("standardised")
     ax.legend(loc="best", fontsize=9)
-    ax.text(0.02, 0.05, f"H1 supported (strong)" if h1.pass_strong else
-            (f"H1 suggestive" if h1.pass_suggestive else "H1 falsified"),
+    ax.text(0.02, 0.05, "H1 supported (strong)" if h1.pass_strong else
+            ("H1 suggestive" if h1.pass_suggestive else "H1 falsified"),
             transform=ax.transAxes, fontsize=9, color="C2" if h1.pass_strong else "C1")
     fig.savefig(fig1_path)
     plt.close(fig)

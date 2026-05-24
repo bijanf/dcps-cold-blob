@@ -25,14 +25,12 @@ from __future__ import annotations
 import json
 import time
 import sys
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from scipy.signal import hilbert as scipy_hilbert
 from scipy.stats import binned_statistic_2d, pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
@@ -206,7 +204,7 @@ def main():
     print(f"  SSH shape: {tuple(ssh.sizes.values())} in {time.time()-t0:.1f}s")
 
     t0 = time.time()
-    print(f"\nLoading GLORYS12 SST (thetao surface) at native 1/12 deg")
+    print("\nLoading GLORYS12 SST (thetao surface) at native 1/12 deg")
     sst = load_glorys12_var("sst", start=ARGO_START, end=ARGO_END, basin=BASIN)
     print(f"  SST shape: {tuple(sst.sizes.values())} in {time.time()-t0:.1f}s")
 

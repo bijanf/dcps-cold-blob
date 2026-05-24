@@ -26,14 +26,12 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 from matplotlib.gridspec import GridSpec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from scipy.stats import gaussian_kde
 

@@ -14,11 +14,9 @@ a clearly documented post-hoc exclusion rule.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 
 from dcps.config import CACHE_DIR
@@ -55,7 +53,7 @@ def main():
     print(f" Multi-model median per-model variance: {median_var:.3f}")
     print(f" Exclusion threshold (2 x median): {threshold:.3f}")
     print()
-    print(f" Per-model variance (sorted desc):")
+    print(" Per-model variance (sorted desc):")
     for m in sorted(per_model_var, key=per_model_var.get, reverse=True):
         flag = "EXCLUDED" if m in excluded else "kept"
         print(f"   {m:<18} var = {per_model_var[m]:6.3f}  {flag}")
@@ -78,9 +76,9 @@ def main():
 
     print(" Strict pre-registered test (no exclusion):")
     print(f"   exceedance: {strict_exc}/{strict_total} = {100*strict_frac:.2f}%")
-    print(f"   threshold:  1.00%  -- FAILED (well above)")
+    print("   threshold:  1.00%  -- FAILED (well above)")
     print()
-    print(f" Mechanical exclusion (variance > 2x multi-model median):")
+    print(" Mechanical exclusion (variance > 2x multi-model median):")
     print(f"   models kept: {len(kept)} ({', '.join(kept)})")
     print(f"   exceedance: {mech_exc}/{mech_total} = {100*mech_frac:.2f}%")
     print(f"   threshold:  1.00%  -- "

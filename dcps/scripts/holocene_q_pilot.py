@@ -26,7 +26,6 @@ import argparse
 import json
 import sys
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -35,11 +34,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from scipy.signal import butter, filtfilt
-from scipy.signal import hilbert as scipy_hilbert
 from scipy.stats import binned_statistic_2d, pearsonr, kendalltau
 
 from dcps.config import CACHE_DIR, PKG_ROOT
-from dcps.nature_style import apply_nature_style, SINGLE_COL_IN, DOUBLE_COL_IN
+from dcps.nature_style import apply_nature_style, DOUBLE_COL_IN
 apply_nature_style()
 
 sys.path.insert(0, str(PKG_ROOT / "scripts"))

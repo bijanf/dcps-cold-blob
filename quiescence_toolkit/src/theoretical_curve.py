@@ -104,7 +104,7 @@ def fit_and_score(D, r_obs, closure="bessel"):
             raise ValueError(f"unknown closure {closure!r}")
         mse = float(np.mean((r_v - r_fit) ** 2))
         return popt[0], r_fit, mse
-    except Exception as e:
+    except Exception:
         return None, None, float("nan")
 
 
@@ -123,7 +123,7 @@ def main():
     r_path = cache / "rl_mean_2thdeg.nc"
     eke_path = cache / "eke_2thdeg.nc"
     if not (r_path.exists() and eke_path.exists()):
-        print(f"Cached arrays not found; need to compute first.")
+        print("Cached arrays not found; need to compute first.")
         return
     rl = xr.open_dataset(r_path)
     rl_var = rl[list(rl.data_vars)[0]]

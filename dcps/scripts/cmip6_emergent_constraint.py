@@ -55,7 +55,7 @@ def main():
     constrained = [m for m, s in hist_slopes.items()
                     if abs(s - OBS_HIST_SEN) <= CONSTRAINT_TOL]
     print(f"Full CMIP6 ensemble: {len(hist_slopes)} models")
-    print(f"  Historical Sen slopes (deg C/century):")
+    print("  Historical Sen slopes (deg C/century):")
     for m, s in sorted(hist_slopes.items(), key=lambda kv: kv[1]):
         in_c = "✓" if m in constrained else " "
         print(f"    {in_c} {m:<22} {s:+.3f}")

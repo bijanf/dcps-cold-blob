@@ -22,12 +22,9 @@ from __future__ import annotations
 import json
 import sys
 import time
-from pathlib import Path
 
 import numpy as np
 from scipy.stats import spearmanr
-from scipy.signal import butter, filtfilt
-from scipy.signal import hilbert as scipy_hilbert
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style

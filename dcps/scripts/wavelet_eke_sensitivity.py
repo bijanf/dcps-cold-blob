@@ -23,7 +23,6 @@ from __future__ import annotations
 import json
 import sys
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -38,7 +37,7 @@ apply_nature_style()
 
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
 from multi_basin_quiescence import (
-    BASINS, load_oras5_basin, regrid_basin, preprocess_anomaly,
+    load_oras5_basin, regrid_basin, preprocess_anomaly,
     instantaneous_phase, local_r_mean,
 )
 from eke_quiescence_test import geostrophic_eke

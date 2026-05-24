@@ -39,17 +39,13 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
-import pandas as pd
-from scipy.signal import butter, filtfilt
-from scipy.signal import hilbert as scipy_hilbert
-from scipy.stats import binned_statistic_2d, pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
-from multi_basin_quiescence import BASINS, basin_target_grid  # noqa: E402
+from multi_basin_quiescence import BASINS  # noqa: E402
 from holocene_q_pilot import (  # noqa: E402
-    _bandpass_anomaly, _basin_subset_2deg, _Q_for_window, _year_of,
-    _slice_by_year, WINDOW_YEARS, RLOC_RADIUS_KM,
+    _Q_for_window, _year_of,
+    _slice_by_year, WINDOW_YEARS,
 )
 
 
@@ -468,7 +464,7 @@ def main():
         print(f"  Q mean={summary['Q_mean']:+.3f} "
               f"sd={summary['Q_sd']:.3f}")
     else:
-        print(f"  no finite Q values produced")
+        print("  no finite Q values produced")
     print(f"  n_windows={summary['n_windows']}")
 
 

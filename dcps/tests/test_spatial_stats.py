@@ -9,7 +9,6 @@ property-based test recommended in the NCOMMS Tier-2 review.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from dcps.spatial_stats import (
     spatial_block_permutation,

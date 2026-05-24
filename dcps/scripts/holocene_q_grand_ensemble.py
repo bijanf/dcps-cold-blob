@@ -20,7 +20,6 @@ import argparse
 import json
 import sys
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -35,8 +34,7 @@ apply_nature_style()
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
 from multi_basin_quiescence import BASINS  # noqa: E402
 from holocene_q_pilot import (  # noqa: E402
-    _Q_for_window, _slice_by_year, _year_of,
-    WINDOW_YEARS, EXIT_PCTILE, PI_SPINUP_YEARS,
+    _Q_for_window, _slice_by_year, WINDOW_YEARS, EXIT_PCTILE,
 )
 
 

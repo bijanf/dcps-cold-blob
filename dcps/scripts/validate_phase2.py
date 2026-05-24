@@ -11,7 +11,6 @@ Six panels in one PNG:
 
 from __future__ import annotations
 
-import sys
 
 import matplotlib
 matplotlib.use("Agg")
@@ -126,7 +125,7 @@ def main():
         time=slice("2004-04", "2014-12"))
     st_box = R.r_loc_sst.sel(lat=slice(20, 40), lon=slice(-60, -10)).sel(
         time=slice("2004-04", "2014-12"))
-    print(f"\nH2 preview (2004-2014 mean local r):")
+    print("\nH2 preview (2004-2014 mean local r):")
     print(f"  Cold Blob box (45-60N, 40-15W): r_loc mean = {float(cb_box.mean()):.3f}")
     print(f"  Subtropical box (20-40N, 60-10W): r_loc mean = {float(st_box.mean()):.3f}")
 

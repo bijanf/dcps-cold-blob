@@ -24,8 +24,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-import xarray as xr
-from scipy.stats import pearsonr
 
 from dcps.spatial_stats import spatial_block_permutation
 

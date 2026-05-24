@@ -9,7 +9,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "quiescence_toolkit" / "src"))
 
-from theoretical_curve import r_simple, r_bessel, r_weak, fit_and_score
+from theoretical_curve import r_simple, r_bessel, fit_and_score
 
 
 def test_r_simple_monotone_decreasing():

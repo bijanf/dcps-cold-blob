@@ -89,7 +89,7 @@ def main():
     print(f"  Subtropical region R: mean={float(st_reg.R_region.mean()):.3f} "
           f"std={float(st_reg.R_region.std()):.3f}")
     print(f"  Phase-difference concentration |<exp i d_phi>|: {z_diff_mag:.3f}")
-    print(f"  (1 = perfectly locked, 0 = uniformly drifting)")
+    print("  (1 = perfectly locked, 0 = uniformly drifting)")
     print(f"  Mean |d_phi|: {np.abs(dphi_wrapped).mean():.3f} rad "
           f"(= {np.rad2deg(np.abs(dphi_wrapped).mean()):.1f} deg)")
 

@@ -12,7 +12,6 @@ should be re-tabulated without CMCC.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import numpy as np
 
@@ -40,14 +39,14 @@ def main():
     print(f"  Matching criterion: |historical Sen - {OBS_RATE:+.2f}| <= "
           f"{MATCH_TOL:.2f} degC/century")
     print()
-    print(f"  Constrained subset (full):")
+    print("  Constrained subset (full):")
     for m, s in sorted(constrained_full.items()):
         print(f"    {m:<18} historical Sen = {s:+.3f} degC/century")
     print()
 
     constrained_no_cmcc = {m: s for m, s in constrained_full.items()
                               if "CMCC" not in m}
-    print(f"  Constrained subset (no CMCC):")
+    print("  Constrained subset (no CMCC):")
     for m, s in sorted(constrained_no_cmcc.items()):
         print(f"    {m:<18} historical Sen = {s:+.3f} degC/century")
     print()

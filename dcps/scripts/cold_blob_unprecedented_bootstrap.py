@@ -37,7 +37,6 @@ two-sided empirical p-values; q-values reported per window.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

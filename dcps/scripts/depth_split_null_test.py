@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import json
 from itertools import combinations
-from pathlib import Path
 
 import numpy as np
 
@@ -141,8 +140,8 @@ def main():
     print()
     if p_value < 0.10:
         print(f"  Depth-split is significant at p = {p_value:.2f} (one-tailed,")
-        print(f"  Fisher's exact extension): the observed 3/3 vs 0/2 pattern")
-        print(f"  is unlikely under random assignment of depth labels.")
+        print("  Fisher's exact extension): the observed 3/3 vs 0/2 pattern")
+        print("  is unlikely under random assignment of depth labels.")
 
 
 if __name__ == "__main__":

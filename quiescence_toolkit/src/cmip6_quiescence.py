@@ -134,12 +134,12 @@ def main():
         u_stat, u_p = mannwhitneyu(hi_Q, lo_Q, alternative="less")
         print(f"  Mann-Whitney U (high_Q < low_Q): U = {u_stat:.2f}, p = {u_p:.3f}")
     else:
-        print(f"  Mann-Whitney U test: NOT RUNNABLE")
+        print("  Mann-Whitney U test: NOT RUNNABLE")
         print(f"    high_res: {len(hi_Q)} model(s) -- {list(Q_table['high_res'].keys())}")
         print(f"    low_res:  {len(lo_Q)} model(s) -- {list(Q_table['low_res'].keys())}")
-        print(f"  HighResMIP coverage on Pangeo is incomplete; the")
-        print(f"  resolution-dependence test cannot be run as specified.")
-        print(f"  P3 (resolution dependence) remains pending.")
+        print("  HighResMIP coverage on Pangeo is incomplete; the")
+        print("  resolution-dependence test cannot be run as specified.")
+        print("  P3 (resolution dependence) remains pending.")
 
     if hi_Q and lo_Q:
         from scipy.stats import mannwhitneyu
@@ -150,7 +150,7 @@ def main():
         gap = median_hi - median_lo
         print()
         print(f"  median(hi) - median(lo) = {gap:+.3f}")
-        print(f"  decision rule (P3): gap < -0.1 AND p_less < 0.05 ?")
+        print("  decision rule (P3): gap < -0.1 AND p_less < 0.05 ?")
         decision = "supported" if (gap < -0.1 and u_p_less < 0.05) else "not supported"
         print(f"  P3 {decision}")
     else:

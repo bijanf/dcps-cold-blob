@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import time
 
-import numpy as np
 import xarray as xr
 
 from dcps.config import CACHE_DIR, PHASE1_OUTPUT
@@ -27,7 +26,7 @@ PHASE2_R = CACHE_DIR / "phase2_R.nc"
 
 
 def main(n_surrogates: int, local_radius_km: float) -> None:
-    print(f"Phase 2 driver:")
+    print("Phase 2 driver:")
     print(f"  input: {PHASE1_OUTPUT}")
     print(f"  surrogates: {n_surrogates}")
     print(f"  local-r radius: {local_radius_km} km")

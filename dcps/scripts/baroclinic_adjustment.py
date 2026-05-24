@@ -20,7 +20,6 @@ signal.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -79,7 +78,7 @@ def main():
     T_deep_200 = erfc(z_proxy / (2 * np.sqrt(1e-5 * 200 * 365.25 * 86400)))
     T_upper_200 = erfc(z_proxy / (2 * np.sqrt(1e-4 * 200 * 365.25 * 86400)))
 
-    print(f"\n  At t=200 yr, T/T0 at each proxy depth:")
+    print("\n  At t=200 yr, T/T0 at each proxy depth:")
     print(f"  {'depth':>6} {'kappa=1e-4':>11} {'kappa=1e-5':>11}  proxy")
     print("  " + "-" * 65)
     rows = []

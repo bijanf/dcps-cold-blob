@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 import sys
 import time
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -121,7 +120,7 @@ def main():
             ds = xr.open_dataset(cache_nc)
         else:
             t0 = time.time()
-            print(f"  cache miss; running ORAS5 pipeline ...")
+            print("  cache miss; running ORAS5 pipeline ...")
             ds = _compute_basin_arrays(basin)
             ds.to_netcdf(cache_nc)
             print(f"  wrote {cache_nc} ({time.time() - t0:.0f}s pipeline)")

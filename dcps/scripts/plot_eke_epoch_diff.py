@@ -21,14 +21,12 @@ for SSP2-4.5 come from <model>_<basin>_epoch_diff_ssp245.nc files.
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style, DOUBLE_COL_IN

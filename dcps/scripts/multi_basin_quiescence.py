@@ -21,7 +21,6 @@ import json
 import os
 import re
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

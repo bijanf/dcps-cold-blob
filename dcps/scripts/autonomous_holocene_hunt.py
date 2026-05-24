@@ -37,7 +37,6 @@ import json
 import sys
 import time
 import traceback
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -45,7 +44,7 @@ import xarray as xr
 from dcps.config import CACHE_DIR, PKG_ROOT
 
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
-from multi_basin_quiescence import BASINS, basin_target_grid  # noqa: E402
+from multi_basin_quiescence import BASINS  # noqa: E402
 from holocene_q_pilot import (  # noqa: E402
     _basin_subset_2deg, _bandpass_anomaly,
     _slice_by_year, _year_of, _mann_kendall,
@@ -478,7 +477,7 @@ def main():
                 if r is None: n_fail += 1
                 else: n_new += 1
             except Exception:
-                print(f"  process_target raised:")
+                print("  process_target raised:")
                 traceback.print_exc()
                 n_fail += 1
         total = len(worklist)

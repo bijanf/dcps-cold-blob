@@ -132,7 +132,7 @@ def _process_one(source: str):
     else:
         raise ValueError(f"unknown source: {source}")
 
-    print(f"  computing Q on full window ...")
+    print("  computing Q on full window ...")
     Q, n_cells = _Q_for_window(sst, ssh, "atlantic")
     print(f"  Q = {Q:+.4f}  (n_cells = {n_cells})")
 

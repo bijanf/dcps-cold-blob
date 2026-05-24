@@ -17,12 +17,10 @@ multi-proxy compilation.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style

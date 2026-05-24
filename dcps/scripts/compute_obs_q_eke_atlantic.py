@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -51,12 +50,6 @@ def main():
     src = args.source
     path = SOURCES[src]
     out_path = EKE_TS_DIR / f"{src}_atlantic_obs.json"
-    try:
-        # _basin_mean_eke_window may not be importable; reimplement inline
-        from holocene_q_pilot import _basin_subset_2deg as _bs
-    except ImportError:
-        pass
-
     ds = xr.open_dataset(path)
     print(f"{src}: vars={list(ds.data_vars)}  time {ds['time'].values[0]} .. "
           f"{ds['time'].values[-1]}  N={ds.sizes['time']}")

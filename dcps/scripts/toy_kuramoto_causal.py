@@ -27,7 +27,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.nature_style import apply_nature_style
@@ -41,8 +40,7 @@ apply_nature_style()
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from toy_kuramoto import (  # noqa: E402
-    NY, NX, K, SIGMA_OMEGA, NOISE_BASE, NOISE_SCALE, RADIUS_CELLS,
-    DT_YR, T_MONTHS, load_eke_field_for_toy_grid, local_r_2d,
+    NY, NX, K, SIGMA_OMEGA, NOISE_BASE, NOISE_SCALE, DT_YR, T_MONTHS, load_eke_field_for_toy_grid, local_r_2d,
 )
 
 OUT_DIR = CACHE_DIR / "toy_kuramoto_causal"

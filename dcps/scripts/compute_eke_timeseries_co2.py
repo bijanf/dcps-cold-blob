@@ -18,14 +18,12 @@ import argparse
 import json
 import sys
 import time
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
-from multi_basin_quiescence import BASINS  # noqa: E402
 from holocene_q_pilot import (  # noqa: E402
     _basin_subset_2deg, _slice_by_year, _year_of, WINDOW_YEARS,
 )

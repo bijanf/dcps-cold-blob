@@ -11,11 +11,9 @@ These thresholds are fixed before computation; no test result modifies them.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from scipy.signal import butter, filtfilt

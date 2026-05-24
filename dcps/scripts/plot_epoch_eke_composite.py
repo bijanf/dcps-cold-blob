@@ -18,7 +18,6 @@ Output: manuscript/figs/fig_epoch_eke_composite_<basin>.pdf
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")

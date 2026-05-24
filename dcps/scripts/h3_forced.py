@@ -20,14 +20,12 @@ import glob
 import json
 import os
 import time as _time
-from collections import defaultdict
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-import xarray as xr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.h3 import _binary_te, _lag1_autocorr

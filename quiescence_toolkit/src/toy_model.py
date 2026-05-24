@@ -111,7 +111,7 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
-    print(f" Step 6 / B7: 1-D reduced-order stochastic Kuramoto model")
+    print(" Step 6 / B7: 1-D reduced-order stochastic Kuramoto model")
     print(f"   L = {L_KM:.0f} km, N = {N}, K = {K_DEFAULT}, "
           f"U_0 = {U0_DEFAULT}, sigma_J = {SIGMA_J_KM:.0f} km")
     print("=" * 70)
@@ -146,8 +146,8 @@ def main():
             r_local, _ = pearsonr(rr, Uu)
             rho_table[i, j] = r_local
     print()
-    print(f"  parameter sweep rho(<r>, U):")
-    print(f"    K \\ U0   " + "  ".join(f"{u:6.2f}" for u in U_grid))
+    print("  parameter sweep rho(<r>, U):")
+    print("    K \\ U0   " + "  ".join(f"{u:6.2f}" for u in U_grid))
     for i, K in enumerate(K_grid):
         print(f"    K={K:.2f}   " + "  ".join(f"{rho_table[i,j]:+6.3f}"
                                                   for j in range(U_grid.size)))

@@ -18,13 +18,11 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-import xarray as xr
 from scipy.stats import pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT

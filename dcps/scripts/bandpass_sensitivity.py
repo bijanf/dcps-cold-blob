@@ -17,15 +17,12 @@ from __future__ import annotations
 import json
 import sys
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import butter, filtfilt
 from scipy.stats import pearsonr
-from scipy.signal import hilbert as scipy_hilbert
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.multiple_testing import fdr_bh

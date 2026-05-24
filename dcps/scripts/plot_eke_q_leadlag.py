@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -225,7 +224,7 @@ def main():
         exit_frac.append(frac)
     exit_frac = np.asarray(exit_frac)
     sweep_peak_lag = int(sweep_yr[np.nanargmax(exit_frac)])
-    print(f"  joint late-future exit fraction sweep:")
+    print("  joint late-future exit fraction sweep:")
     for L, f in zip(sweep_yr, exit_frac):
         print(f"    lag={L:+3d} yr  exit={100*f:5.1f}%")
     print(f"  peak exit fraction at lag = {sweep_peak_lag} yr "

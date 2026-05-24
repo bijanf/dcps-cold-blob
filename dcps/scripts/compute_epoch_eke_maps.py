@@ -16,17 +16,14 @@ Resumable per-(model, basin) cache.  Idempotent re-runs.
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
-from pathlib import Path
 
-import numpy as np
 import xarray as xr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 sys.path.insert(0, str(PKG_ROOT / "scripts"))
-from multi_basin_quiescence import BASINS, basin_target_grid  # noqa: E402
+from multi_basin_quiescence import BASINS  # noqa: E402
 from holocene_q_pilot import _basin_subset_2deg, _year_of, _slice_by_year  # noqa: E402
 
 

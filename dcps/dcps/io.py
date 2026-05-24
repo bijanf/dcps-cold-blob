@@ -5,10 +5,7 @@ from __future__ import annotations
 import glob
 import os
 import re
-from collections.abc import Iterable
-from pathlib import Path
 
-import numpy as np
 import xarray as xr
 
 from .config import (

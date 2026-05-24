@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 
-from dcps.config import CACHE_DIR, PKG_ROOT
+from dcps.config import CACHE_DIR
 
 
 HOL_DIR = CACHE_DIR / "holocene_exit"

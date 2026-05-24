@@ -13,7 +13,6 @@ import numpy as np
 import xarray as xr
 
 from .order_parameter import global_R
-from .phase import analytic_signal
 
 
 def phase_randomise(arr: np.ndarray, rng: np.random.Generator) -> np.ndarray:

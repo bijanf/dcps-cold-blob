@@ -41,10 +41,8 @@ Honest caveats:
 from __future__ import annotations
 
 import csv
-import glob
 import io
 import json
-import os
 import re
 import zipfile
 from pathlib import Path
@@ -544,7 +542,7 @@ def main():
 
     ax = axes[1]
     ax.hist(sen_boot, bins=40, color="C0", alpha=0.55,
-            label=f"full Holocene")
+            label="full Holocene")
     ax.axvline(0, color="0.4", lw=0.6)
     # Three-window vertical reference.
     ax.axvline(late_holo["sen_slope_degC_per_kyr"], color="C3", lw=2.0,

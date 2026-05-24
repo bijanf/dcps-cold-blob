@@ -57,11 +57,13 @@ jobs:
       - name: Install ruff
         run: pip install "ruff>=0.6"
 
-      # Restricted to fatal-class checks (syntax errors, invalid literal
-      # comparisons, undefined names in __all__) so the gate stays
-      # informative without forcing research-code style cleanups.
+      # Gate on: syntax errors (E9), invalid literal comparisons (F63),
+      # syntax errors in statements (F7), undefined names in __all__ (F82),
+      # unused imports (F401), and missing f-string placeholders (F541).
+      # Unused locals (F841) are excluded — common in research code that
+      # builds intermediate arrays for debug introspection.
       - name: Lint
         run: |
           ruff check dcps/ quiescence_toolkit/ \
-            --select=E9,F63,F7,F82 \
+            --select=E9,F63,F7,F82,F401,F541 \
             --output-format=github

@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 from matplotlib.patches import Rectangle
-from scipy.stats import pearsonr
 
 from dcps.config import CACHE_DIR, PKG_ROOT
 from dcps.order_parameter import local_r

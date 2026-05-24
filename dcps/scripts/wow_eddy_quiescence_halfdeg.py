@@ -17,9 +17,7 @@ Panels:
 from __future__ import annotations
 
 import json
-import sys
 import time
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -194,7 +192,7 @@ def local_r_vectorized(phase, lat_arr, lon_arr, radius_km=500.0,
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    print(f"Loading GLORYS12 SST at native 1/12 deg")
+    print("Loading GLORYS12 SST at native 1/12 deg")
     sst = load_glorys12_var("sst", start=ARGO_START, end=ARGO_END)
 
     print(f"Regridding SST -> {TARGET_DEG} deg")

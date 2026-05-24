@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -178,7 +177,7 @@ def main():
     f_hist = _exit_fraction(hist_pts)
     f_mid  = _exit_fraction(mid_pts)
     f_late = _exit_fraction(late_pts)
-    print(f"  joint p95-contour exit fraction:")
+    print("  joint p95-contour exit fraction:")
     print(f"    piControl   : {100*f_pi  :5.1f}%  (target ~5%)")
     print(f"    historical  : {100*f_hist:5.1f}%")
     print(f"    mid-future  : {100*f_mid :5.1f}%")

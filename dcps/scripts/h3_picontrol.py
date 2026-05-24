@@ -166,7 +166,7 @@ def main():
     H3_PIC_DIR.mkdir(parents=True, exist_ok=True)
     files = sorted(glob.glob(str(CMIP6_DIR / "*_piControl_vo_zonal.nc")))
     print(f"Found {len(files)} CMIP6 piControl vo_zonal files\n")
-    print(f"H3-piControl test (pre-registered):")
+    print("H3-piControl test (pre-registered):")
     print(f"  subtropical lat: {SUBTROPICAL_LAT}")
     print(f"  subpolar lat:    {SUBPOLAR_LAT}")
     print(f"  window:          {WINDOW_YEARS} yr")
@@ -188,14 +188,14 @@ def main():
     valid = [r for r in results if "passed" in r]
     n_pass = sum(1 for r in valid if r["passed"])
     pass_frac = n_pass / max(1, len(valid))
-    print(f"\n=== Aggregate H3-piControl ===")
+    print("\n=== Aggregate H3-piControl ===")
     print(f"  Models tested: {len(valid)} of {len(results)}")
     print(f"  Per-model passes: {n_pass}/{len(valid)}  ({pass_frac:.0%})")
     aggregate_supported = pass_frac >= AGGREGATE_FRACTION
     print(f"  AGGREGATE: {'SUPPORTED' if aggregate_supported else 'falsified'}")
 
     # Median lagged rho across models
-    print(f"\nMedian rho(TE, var) across models, by lag:")
+    print("\nMedian rho(TE, var) across models, by lag:")
     for tau in LAGS_YEARS:
         rhos = [r["rhos"][tau] for r in valid if "rhos" in r and np.isfinite(r["rhos"].get(tau, np.nan))]
         if rhos:

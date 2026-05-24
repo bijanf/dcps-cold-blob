@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -147,7 +146,7 @@ def main():
         xx = np.linspace(1850, 2100, 400)
         kde_curve = kde(xx) * len(years) * 10
         axR.plot(xx, kde_curve, color="C3", lw=1.0,
-                  label=f"KDE (bw=0.25)")
+                  label="KDE (bw=0.25)")
     axR.axvline(EARLY_END, color="0.5", lw=0.5, ls="--")
     axR.axvline(LATE_START, color="0.5", lw=0.5, ls="--")
     axR.text(EARLY_END - 5, axR.get_ylim()[1] * 0.95, "1940",
