@@ -1,6 +1,7 @@
 # dcps-cold-blob
 
 [![CI](https://github.com/bijanf/dcps-cold-blob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bijanf/dcps-cold-blob/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
