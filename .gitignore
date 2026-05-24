@@ -89,3 +89,5 @@ GEMINI.md
 *transcript*.md
 *chat*.md
 *handoff*.md
+# Bundle dumps produced by repo-context tools (repomix etc.)
+repomix-output.*
