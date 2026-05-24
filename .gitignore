@@ -36,6 +36,21 @@ data/external/hadisst/
 data/external/palmod_130k/lipd_unzipped/
 data/external/palmod_130k/PalMod2_0_0.zip
 data/external/atmospheric/
+data/external/era5/
+data/external/era5_z500/
+
+# Bulk scientific-data binary formats — never commit these, regardless
+# of where they live in the tree. Datasets must be downloaded by users
+# via the scripts in dcps/scripts/data_fetchers/ or via the README's
+# curl recipes.
+*.nc
+*.nc4
+*.h5
+*.hdf5
+*.zarr
+*.grib
+*.grb
+*.netcdf
 
 # Editor / OS artifacts
 .DS_Store
