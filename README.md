@@ -1,5 +1,9 @@
 # dcps-cold-blob
 
+[![CI](https://github.com/bijanf/dcps-cold-blob/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bijanf/dcps-cold-blob/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
 Reproducible analysis code for a pre-registered phase-synchronisation
 study of the North Atlantic Cold Blob across the Holocene (PALMOD-130k
 proxies), the instrumental era (HadISST 1870–2023), and CMIP6 future

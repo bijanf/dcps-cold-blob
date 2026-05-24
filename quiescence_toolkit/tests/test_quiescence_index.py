@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-REPO = Path("/home/bijanf/Documents/NEW_Theory")
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "quiescence_toolkit" / "src"))
 sys.path.insert(0, str(REPO / "dcps"))
 
