@@ -209,7 +209,8 @@ def main():
               f"Fraction $\\leq$ observed: {100*frac:.3f}%",
               transform=ax.transAxes, fontsize=9,
               bbox=dict(boxstyle="round,pad=0.3", facecolor="white"))
-    out_fig = Path("/home/bijanf/Documents/NEW_Theory/manuscript/figs/fig_picontrol_dna.pdf")
+    out_fig = Path(__file__).resolve().parents[2] / "manuscript" / "figs" / "fig_picontrol_dna.pdf"
+    out_fig.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_fig)
     plt.close(fig)
     print(f"Wrote {out_fig}")

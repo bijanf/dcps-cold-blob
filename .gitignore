@@ -91,3 +91,13 @@ GEMINI.md
 *handoff*.md
 # Bundle dumps produced by repo-context tools (repomix etc.)
 repomix-output.*
+
+# Local workspace symlink to the private manuscript repo
+# (`ln -s ../coldblob-manuscript/manuscript manuscript`). Figure-writing
+# scripts resolve `manuscript/figs/...` through this symlink when both
+# repos are checked out side by side. Never tracked in the public repo.
+/manuscript
+/manuscript/
+
+# Companion-paper LaTeX sources (live in the private manuscript repo)
+quiescence_toolkit/paper/
