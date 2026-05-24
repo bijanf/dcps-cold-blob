@@ -57,39 +57,58 @@ def _process_one_model(model: str, basin: str, n_pi: int,
             pass
 
     t0 = time.time()
-    try:
-        pi_tos = _open_pangeo(model, "piControl",  "tos")
-        pi_zos = _open_pangeo(model, "piControl",  "zos")
-    except Exception as e:
-        print(f"  [{model}] piControl open FAILED -- {type(e).__name__}: {e}")
-        return None
 
-    yr0 = _year_of(pi_tos["time"].values[0])
-    yr1 = _year_of(pi_tos["time"].values[-1])
-
-    # piControl Q segments ---------------------------------------------
-    pi_Q = []; pi_starts = []
-    seg = yr0 + PI_SPINUP_YEARS
-    while (seg + WINDOW_YEARS - 1) <= yr1 and len(pi_Q) < n_pi:
-        s, e = seg, seg + WINDOW_YEARS - 1
+    # piControl Q is scenario-independent: reuse from SSP585 cache if present.
+    pi_cache = BULK_DIR / f"{model}_{basin}.json"
+    pi_Q = None
+    if experiment != "ssp585" and pi_cache.exists():
         try:
-            Q, n = _Q_for_window(_slice_by_year(pi_tos, s, e),
-                                   _slice_by_year(pi_zos, s, e), basin)
-            pi_Q.append(Q); pi_starts.append(int(s))
-            print(f"  [{model}] pi {s}-{e}: Q={Q:+.3f} n={n}")
-        except Exception as ex:
-            print(f"  [{model}] pi {s}-{e}: FAILED ({type(ex).__name__})")
-        seg += PI_SEGMENT_STRIDE_YEARS
+            cdat = json.loads(pi_cache.read_text())
+            if all(k in cdat for k in ("pi_Q", "pi_starts", "pi_p95_threshold",
+                                          "pi_mk_tau", "pi_mk_p")):
+                pi_Q = list(cdat["pi_Q"])
+                pi_starts = list(cdat["pi_starts"])
+                pi_arr = np.asarray(pi_Q, dtype=float)
+                threshold = float(cdat["pi_p95_threshold"])
+                tau = float(cdat["pi_mk_tau"]); p_mk = float(cdat["pi_mk_p"])
+                print(f"  [{model}] piControl reused from ssp585 cache "
+                      f"(N={len(pi_Q)}, thr={threshold:+.3f})")
+        except Exception:
+            pi_Q = None
 
-    if len(pi_Q) < 4:
-        print(f"  [{model}] too few piControl segments ({len(pi_Q)}); skip")
-        return None
+    if pi_Q is None:
+        try:
+            pi_tos = _open_pangeo(model, "piControl",  "tos")
+            pi_zos = _open_pangeo(model, "piControl",  "zos")
+        except Exception as e:
+            print(f"  [{model}] piControl open FAILED -- {type(e).__name__}: {e}")
+            return None
 
-    pi_arr = np.asarray(pi_Q, dtype=float)
-    threshold = float(np.nanpercentile(pi_arr, EXIT_PCTILE))
-    tau, p_mk = _mann_kendall(pi_arr)
-    print(f"  [{model}] pi mean={np.nanmean(pi_arr):+.3f} sd={np.nanstd(pi_arr):.3f}  "
-          f"thr={threshold:+.3f}  MK p={p_mk:.3f}")
+        yr0 = _year_of(pi_tos["time"].values[0])
+        yr1 = _year_of(pi_tos["time"].values[-1])
+
+        pi_Q = []; pi_starts = []
+        seg = yr0 + PI_SPINUP_YEARS
+        while (seg + WINDOW_YEARS - 1) <= yr1 and len(pi_Q) < n_pi:
+            s, e = seg, seg + WINDOW_YEARS - 1
+            try:
+                Q, n = _Q_for_window(_slice_by_year(pi_tos, s, e),
+                                       _slice_by_year(pi_zos, s, e), basin)
+                pi_Q.append(Q); pi_starts.append(int(s))
+                print(f"  [{model}] pi {s}-{e}: Q={Q:+.3f} n={n}")
+            except Exception as ex:
+                print(f"  [{model}] pi {s}-{e}: FAILED ({type(ex).__name__})")
+            seg += PI_SEGMENT_STRIDE_YEARS
+
+        if len(pi_Q) < 4:
+            print(f"  [{model}] too few piControl segments ({len(pi_Q)}); skip")
+            return None
+
+        pi_arr = np.asarray(pi_Q, dtype=float)
+        threshold = float(np.nanpercentile(pi_arr, EXIT_PCTILE))
+        tau, p_mk = _mann_kendall(pi_arr)
+        print(f"  [{model}] pi mean={np.nanmean(pi_arr):+.3f} sd={np.nanstd(pi_arr):.3f}  "
+              f"thr={threshold:+.3f}  MK p={p_mk:.3f}")
 
     # historical + <experiment> ----------------------------------------
     try:

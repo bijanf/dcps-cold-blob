@@ -108,7 +108,7 @@ def main():
     ax.set_ylim(0, y_top)
     ax.set_xlabel("Sliding-window timescale (years)")
     ax.set_ylabel(r"$|z|$ vs Holocene/pre-1850 distribution ($\sigma$)")
-    ax.legend(loc="upper left", frameon=False)
+    ax.legend(loc="upper left", frameon=False, fontsize=22)
 
     out_fig = MANUSCRIPT_FIGS / "fig_wow.pdf"
     fig.savefig(out_fig)

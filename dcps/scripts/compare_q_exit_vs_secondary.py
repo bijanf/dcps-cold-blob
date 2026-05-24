@@ -158,7 +158,9 @@ def main():
     ax.set_ylim(-0.5, len(sorted_rows) - 0.5)
     ax.axvline(1940, color="0.5", lw=0.4, ls="--")
     ax.axvline(1990, color="0.5", lw=0.4, ls="--")
-    ax.legend(loc="lower right", fontsize=6, frameon=False)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.01),
+                ncol=3, fontsize=16, frameon=False,
+                handletextpad=0.4, columnspacing=1.2)
     MANUSCRIPT_FIGS.mkdir(parents=True, exist_ok=True)
     out_pdf = (MANUSCRIPT_FIGS
                 / f"fig_q_exit_vs_secondary_{args.basin}.pdf")

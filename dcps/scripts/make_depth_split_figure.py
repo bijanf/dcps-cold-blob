@@ -75,7 +75,7 @@ def main():
                   markeredgecolor="black", markersize=12,
                   label="Deep / abyssal (augmented this revision)"),
     ]
-    ax.legend(handles=legend_elements, loc="center right", fontsize=10,
+    ax.legend(handles=legend_elements, loc="center right", fontsize=22,
                   framealpha=0.95)
 
     ax.set_xscale("log")

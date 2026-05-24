@@ -34,12 +34,6 @@ from holocene_q_pilot import _basin_subset_2deg, _slice_by_year  # noqa: E402
 OUT_DIR = CACHE_DIR / "eke_epoch_diff"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-EPOCHS = {
-    "baseline": (1850, 1900, "historical"),
-    "mid":      (2030, 2060, "ssp585"),
-    "far":      (2070, 2099, "ssp585"),
-}
-
 
 def _open_pangeo_member(model, experiment, variable):
     import intake
@@ -69,25 +63,34 @@ def _epoch_mean_eke(zos, basin, year_start, year_end):
     return grad2
 
 
-def _process_one(model: str, basin: str) -> bool:
-    out_path = OUT_DIR / f"{model}_{basin}_epoch_diff.nc"
+def _process_one(model: str, basin: str, experiment: str = "ssp585") -> bool:
+    """Per-model 30-year-mean |grad SSH|^2 maps for one scenario.
+
+    For ssp585: writes baseline (1850-1900), mid (2030-2060), far (2070-2099).
+    For other ssp* scenarios: writes mid + far only (baseline is shared
+    across scenarios and lives in the canonical ssp585 cache file).
+    """
+    suffix = "" if experiment == "ssp585" else f"_{experiment}"
+    out_path = OUT_DIR / f"{model}_{basin}_epoch_diff{suffix}.nc"
     if out_path.exists():
-        print(f"  [{model}] cached, skip"); return True
-    print(f"\n[{model} {basin}] starting ...")
+        print(f"  [{model}/{experiment}] cached, skip"); return True
+    print(f"\n[{model} {basin} {experiment}] starting ...")
     t0 = time.time()
     maps = {}
+    if experiment == "ssp585":
+        try:
+            zos_hi = _open_pangeo_member(model, "historical", "zos")
+        except Exception as e:
+            print(f"  historical FAILED: {e}"); return False
     try:
-        zos_hi = _open_pangeo_member(model, "historical", "zos")
+        zos_sp = _open_pangeo_member(model, experiment, "zos")
     except Exception as e:
-        print(f"  historical FAILED: {e}"); return False
-    try:
-        zos_sp = _open_pangeo_member(model, "ssp585", "zos")
-    except Exception as e:
-        print(f"  ssp585 FAILED ({e}); skipping this model")
+        print(f"  {experiment} FAILED ({e}); skipping this model")
         return False
     try:
-        maps["baseline"] = _epoch_mean_eke(zos_hi, basin, 1850, 1900)
-        print(f"  baseline (1850-1900) done ({time.time()-t0:.0f}s)")
+        if experiment == "ssp585":
+            maps["baseline"] = _epoch_mean_eke(zos_hi, basin, 1850, 1900)
+            print(f"  baseline (1850-1900) done ({time.time()-t0:.0f}s)")
         t1 = time.time()
         maps["mid"]      = _epoch_mean_eke(zos_sp, basin, 2030, 2060)
         print(f"  mid (2030-2060) done ({time.time()-t1:.0f}s)")
@@ -100,6 +103,7 @@ def _process_one(model: str, basin: str) -> bool:
     ds = xr.Dataset({k: v for k, v in maps.items()})
     ds.attrs["model"] = model
     ds.attrs["basin"] = basin
+    ds.attrs["experiment"] = experiment
     tmp = out_path.with_suffix(".nc.tmp")
     ds.to_netcdf(tmp)
     tmp.rename(out_path)
@@ -112,6 +116,8 @@ def main():
     ap.add_argument("--basin", default="atlantic",
                      choices=list(BASINS.keys()))
     ap.add_argument("--models", nargs="*", default=None)
+    ap.add_argument("--experiment", default="ssp585",
+                     help="scenario to compute (e.g. ssp245, ssp585)")
     args = ap.parse_args()
 
     bulk_dir = CACHE_DIR / "holocene_exit" / "bulk"
@@ -121,11 +127,11 @@ def main():
     else:
         models = args.models
     print("=" * 70)
-    print(f" Narrow-epoch EKE maps  basin={args.basin}  "
+    print(f" Narrow-epoch EKE maps  basin={args.basin}  experiment={args.experiment}  "
           f"N_models={len(models)}")
     print("=" * 70)
     for m in models:
-        try: _process_one(m, args.basin)
+        try: _process_one(m, args.basin, experiment=args.experiment)
         except Exception as e:
             print(f"  [{m}] hard fail: {type(e).__name__}: {e}")
     print(f"\ndone -> {OUT_DIR}/")

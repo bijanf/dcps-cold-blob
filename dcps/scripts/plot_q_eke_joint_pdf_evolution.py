@@ -68,9 +68,37 @@ def _admitted_models(basin):
     return out
 
 
+def _admitted_models_245(basin):
+    """SSP2-4.5 Q bulk caches; piControl gate inherited from SSP585 cache."""
+    out = {}
+    for p in sorted(BULK_DIR.glob(f"*_{basin}_ssp245.json")):
+        try:
+            d = json.loads(p.read_text())
+        except Exception:
+            continue
+        out[d["model"]] = d
+    return out
+
+
 def _eke_caches(basin):
     out = {}
     for p in sorted(EKE_TS_DIR.glob(f"*_{basin}_eke_ts.json")):
+        try:
+            d = json.loads(p.read_text())
+        except Exception:
+            continue
+        # restrict to default ssp585 caches: drop the variants
+        name = p.stem
+        if any(t in name for t in ("ssp245", "ssp370", "ssp126",
+                                    "1pctCO2", "abrupt-4xCO2")):
+            continue
+        out[d["model"]] = d
+    return out
+
+
+def _eke_caches_245(basin):
+    out = {}
+    for p in sorted(EKE_TS_DIR.glob(f"*_{basin}_ssp245_eke_ts.json")):
         try:
             d = json.loads(p.read_text())
         except Exception:
@@ -137,6 +165,11 @@ def main():
     eke = _eke_caches(args.basin)
     common = sorted(set(admit) & set(eke))
 
+    # SSP2-4.5 sibling caches (use the same stationarity-passed subset)
+    admit245 = _admitted_models_245(args.basin)
+    eke245 = _eke_caches_245(args.basin)
+    common245 = sorted(set(admit) & set(admit245) & set(eke245))
+
     pi_pts, hist_pts, mid_pts, late_pts = [], [], [], []
     for m in common:
         b = admit[m]; e = eke[m]
@@ -144,17 +177,29 @@ def main():
         hist_pts.extend(_epoch_pairs(b, e, *EPOCHS["historical"]))
         mid_pts.extend(_epoch_pairs(b, e, *EPOCHS["mid"]))
         late_pts.extend(_epoch_pairs(b, e, *EPOCHS["late"]))
+    mid_pts_245, late_pts_245 = [], []
+    for m in common245:
+        mid_pts_245.extend(_epoch_pairs(admit245[m], eke245[m],
+                                          *EPOCHS["mid"]))
+        late_pts_245.extend(_epoch_pairs(admit245[m], eke245[m],
+                                           *EPOCHS["late"]))
     pi_pts   = np.asarray(pi_pts)
     hist_pts = np.asarray(hist_pts)
     mid_pts  = np.asarray(mid_pts)
     late_pts = np.asarray(late_pts)
+    mid_pts_245 = np.asarray(mid_pts_245)
+    late_pts_245 = np.asarray(late_pts_245)
     print(f"basin={args.basin}  pi={len(pi_pts)}  hist={len(hist_pts)}  "
-          f"mid={len(mid_pts)}  late={len(late_pts)}")
+          f"mid585={len(mid_pts)}  late585={len(late_pts)}  "
+          f"mid245={len(mid_pts_245)}  late245={len(late_pts_245)}  "
+          f"(n_models 585={len(common)}, 245={len(common245)})")
 
     all_x = np.concatenate([pi_pts[:,0], hist_pts[:,0],
-                              mid_pts[:,0], late_pts[:,0]])
+                              mid_pts[:,0], late_pts[:,0],
+                              mid_pts_245[:,0], late_pts_245[:,0]])
     all_y = np.concatenate([pi_pts[:,1], hist_pts[:,1],
-                              mid_pts[:,1], late_pts[:,1]])
+                              mid_pts[:,1], late_pts[:,1],
+                              mid_pts_245[:,1], late_pts_245[:,1]])
     # full data extent + 20 % pad so KDE tails are fully visible
     xlo, xhi = all_x.min(), all_x.max()
     ylo, yhi = all_y.min(), all_y.max()
@@ -172,10 +217,12 @@ def main():
         k = gaussian_kde(pts.T, bw_method=bw)
         return k(grid).reshape(GX.shape), k
 
-    Z_pi,  kde_pi  = _Z(pi_pts)
-    Z_hi,  _       = _Z(hist_pts)
-    Z_mid, _       = _Z(mid_pts)
-    Z_la,  _       = _Z(late_pts)
+    Z_pi,    kde_pi = _Z(pi_pts)
+    Z_hi,    _      = _Z(hist_pts)
+    Z_mid,   _      = _Z(mid_pts)
+    Z_la,    _      = _Z(late_pts)
+    Z_mid245, _     = _Z(mid_pts_245)
+    Z_la245,  _     = _Z(late_pts_245)
 
     # Pinned vmax = 30 - aggressive cap that saturates the piControl
     # ridge well below its true peak (~45) so the future-epoch
@@ -199,38 +246,46 @@ def main():
     # log2 ratio of (late+eps) / (piC+eps), masked where piControl is
     # near-zero (no reference state to compare against)
     eps = 1e-3 * vmax
-    R = np.log2((Z_la + eps) / (Z_pi + eps))
-    R_mask = np.where((Z_la < 1e-3 * vmax) & (Z_pi < 1e-3 * vmax),
-                       np.nan, R)
+    R585 = np.log2((Z_la + eps) / (Z_pi + eps))
+    R585_mask = np.where((Z_la < 1e-3 * vmax) & (Z_pi < 1e-3 * vmax),
+                          np.nan, R585)
+    R245 = np.log2((Z_la245 + eps) / (Z_pi + eps))
+    R245_mask = np.where((Z_la245 < 1e-3 * vmax) & (Z_pi < 1e-3 * vmax),
+                          np.nan, R245)
     # Symmetric +/- 10 log2 range (per user request) - shows the
     # extreme tails of the future-vs-piControl density ratio.
     rmax = 10.0
 
-    # ---- figure: row 1 holds (a-d) + shared viridis cbar; row 2 holds
-    #              (e) in a SINGLE column (same width as one row-1 panel)
-    fig = plt.figure(figsize=(DOUBLE_COL_IN, DOUBLE_COL_IN * 0.62),
+    # ---- figure: 2 rows x 4 cols of panels + colorbar column
+    # Row 0: SSP5-8.5 chain  (a) piC | (b) hist | (c) 585 mid | (d) 585 late | density cbar
+    # Row 1: SSP2-4.5 chain + log-ratios
+    #        (e) 245 mid | (f) 245 late | (g) log2 585 | (h) log2 245 | ratio cbar
+    fig = plt.figure(figsize=(DOUBLE_COL_IN, DOUBLE_COL_IN * 0.60),
                        constrained_layout=False)
     gs = GridSpec(2, 5,
                     width_ratios=[1, 1, 1, 1, 0.07],
-                    height_ratios=[1.0, 1.05],
-                    wspace=0.18, hspace=0.34,
-                    left=0.07, right=0.93, bottom=0.10, top=0.95,
+                    height_ratios=[1.0, 1.0],
+                    wspace=0.22, hspace=0.34,
+                    left=0.06, right=0.95, bottom=0.14, top=0.95,
                     figure=fig)
-    ax_pi  = fig.add_subplot(gs[0, 0])
-    ax_hi  = fig.add_subplot(gs[0, 1], sharey=ax_pi, sharex=ax_pi)
-    ax_mid = fig.add_subplot(gs[0, 2], sharey=ax_pi, sharex=ax_pi)
-    ax_la  = fig.add_subplot(gs[0, 3], sharey=ax_pi, sharex=ax_pi)
-    ax_cb  = fig.add_subplot(gs[0, 4])
-    # row 2: log-ratio panel = ONE column only (same width as (a)).
-    # Intentionally NOT sharex with ax_pi - we want to zoom only (a-d)
-    # and keep panel (e) at its full rel-EKE extent.
-    ax_rat = fig.add_subplot(gs[1, 0], sharey=ax_pi)
+    ax_pi    = fig.add_subplot(gs[0, 0])
+    ax_hi    = fig.add_subplot(gs[0, 1], sharey=ax_pi, sharex=ax_pi)
+    ax_mid   = fig.add_subplot(gs[0, 2], sharey=ax_pi, sharex=ax_pi)
+    ax_la    = fig.add_subplot(gs[0, 3], sharey=ax_pi, sharex=ax_pi)
+    ax_cb    = fig.add_subplot(gs[0, 4])
+    ax_mid245 = fig.add_subplot(gs[1, 0], sharey=ax_pi, sharex=ax_pi)
+    ax_la245  = fig.add_subplot(gs[1, 1], sharey=ax_pi, sharex=ax_pi)
+    ax_rat585 = fig.add_subplot(gs[1, 2], sharey=ax_pi)
+    ax_rat245 = fig.add_subplot(gs[1, 3], sharey=ax_pi, sharex=ax_rat585)
+    ax_cbR    = fig.add_subplot(gs[1, 4])
 
     panels = [
-        (ax_pi,  Z_pi,  pi_pts,   "(a) piControl"),
-        (ax_hi,  Z_hi,  hist_pts, "(b) historical 1850-1900"),
-        (ax_mid, Z_mid, mid_pts,  "(c) SSP5-8.5 2030-2060"),
-        (ax_la,  Z_la,  late_pts, "(d) SSP5-8.5 2070-2099"),
+        (ax_pi,     Z_pi,      pi_pts,        "(a) piControl"),
+        (ax_hi,     Z_hi,      hist_pts,      "(b) historical 1850-1900"),
+        (ax_mid,    Z_mid,     mid_pts,       "(c) SSP5-8.5 2030-2060"),
+        (ax_la,     Z_la,      late_pts,      "(d) SSP5-8.5 2070-2099"),
+        (ax_mid245, Z_mid245,  mid_pts_245,   "(e) SSP2-4.5 2030-2060"),
+        (ax_la245,  Z_la245,   late_pts_245,  "(f) SSP2-4.5 2070-2099"),
     ]
 
     # Reanalysis anchors: each is one observation-constrained
@@ -290,7 +345,8 @@ def main():
         # since row 1 is one row, we still need the x label here
         ax.set_xlabel(r"rel EKE", fontsize=6, labelpad=2)
     ax_pi.set_ylabel(r"Quiescence Index $Q$", fontsize=6, labelpad=2)
-    for ax in (ax_hi, ax_mid, ax_la):
+    ax_mid245.set_ylabel(r"Quiescence Index $Q$", fontsize=6, labelpad=2)
+    for ax in (ax_hi, ax_mid, ax_la, ax_la245, ax_rat585, ax_rat245):
         ax.tick_params(axis="y", labelleft=False)
         ax.set_ylabel("")
 
@@ -298,25 +354,45 @@ def main():
     cb.set_label("joint density", fontsize=5, labelpad=2)
     cb.ax.tick_params(labelsize=5)
 
-    # (e) log-ratio panel
+    # ---- log-ratio panels (g, h) -------------------------------------
     norm = TwoSlopeNorm(vmin=-rmax, vcenter=0.0, vmax=rmax)
-    imR = ax_rat.imshow(R_mask, origin="lower", aspect="auto",
+    ratio_panels = [
+        (ax_rat585, R585_mask,
+         r"(g) $\log_2(P_{\mathrm{late\,SSP5\text{-}8.5}}/P_{\mathrm{piC}})$"),
+        (ax_rat245, R245_mask,
+         r"(h) $\log_2(P_{\mathrm{late\,SSP2\text{-}4.5}}/P_{\mathrm{piC}})$"),
+    ]
+    last_imR = None
+    for ax, R_mask, title in ratio_panels:
+        imR = ax.imshow(R_mask, origin="lower", aspect="auto",
                           extent=(xlo, xhi, ylo, yhi),
                           cmap="RdBu_r", norm=norm, interpolation="bilinear")
-    ax_rat.contour(GX, GY, Z_pi, levels=[lvl_p95], colors="k",
+        last_imR = imR
+        ax.contour(GX, GY, Z_pi, levels=[lvl_p95], colors="k",
                     linewidths=0.6, linestyles="--", alpha=0.9)
-    ax_rat.contour(GX, GY, Z_pi, levels=[lvl_p50], colors="k",
+        ax.contour(GX, GY, Z_pi, levels=[lvl_p50], colors="k",
                     linewidths=0.5, linestyles=":", alpha=0.6)
-    if lvl_hi_p95 is not None:
-        ax_rat.contour(GX, GY, Z_hi, levels=[lvl_hi_p95],
+        if lvl_hi_p95 is not None:
+            ax.contour(GX, GY, Z_hi, levels=[lvl_hi_p95],
                         colors="#e25822", linewidths=0.8,
                         linestyles="-", alpha=0.95)
-    for src, xy, marker, color, size in obs_points:
-        ax_rat.scatter(*xy, marker=marker, s=size + 10,
+        for src, xy, marker, color, size in obs_points:
+            ax.scatter(*xy, marker=marker, s=size + 10,
                         facecolor=color, edgecolor="k",
                         linewidth=0.6, zorder=10)
-    # contour-style key placed outside the (e) panel - figure-level
-    # legend in the unused empty area below row 1 cols 1-3
+        ax.axhline(0, color="0.4", lw=0.25, zorder=0)
+        ax.axvline(1, color="0.4", lw=0.25, zorder=0)
+        ax.set_xlim(xlo, xhi); ax.set_ylim(ylo, yhi)
+        ax.set_title(title, fontsize=6, pad=2)
+        ax.set_xlabel(r"rel EKE", fontsize=6, labelpad=2)
+        ax.tick_params(axis="both", labelsize=5)
+
+    cbR = fig.colorbar(last_imR, cax=ax_cbR, ticks=[-10, -5, 0, 5, 10])
+    cbR.set_label(r"$\log_2$ ratio", fontsize=5, labelpad=2)
+    cbR.ax.tick_params(labelsize=5)
+
+    # Contour-style key: single figure-level legend just below the
+    # density colorbar.
     from matplotlib.lines import Line2D
     legend_handles = [
         Line2D([0],[0], color="k",       lw=0.8, ls="--",
@@ -330,26 +406,10 @@ def main():
                markeredgewidth=0.6, markersize=7,
                label="ORAS5 reanalysis 1995-2024"),
     ]
-    fig.legend(handles=legend_handles, loc="center",
-                  bbox_to_anchor=(0.65, 0.27), fontsize=6,
+    fig.legend(handles=legend_handles, loc="upper center",
+                  bbox_to_anchor=(0.5, 0.04), fontsize=6, ncol=4,
                   frameon=False, handlelength=2.0,
-                  labelspacing=0.5, title="reference contours",
-                  title_fontsize=6)
-    ax_rat.axhline(0, color="0.4", lw=0.25, zorder=0)
-    ax_rat.axvline(1, color="0.4", lw=0.25, zorder=0)
-    ax_rat.set_xlim(xlo, xhi); ax_rat.set_ylim(ylo, yhi)
-    ax_rat.set_title(r"(e) $\log_2(P_{\mathrm{late}}/P_{\mathrm{piC}})$",
-                       fontsize=6, pad=2)
-    ax_rat.set_xlabel(r"rel EKE", fontsize=6, labelpad=2)
-    ax_rat.set_ylabel(r"Quiescence Index $Q$", fontsize=6, labelpad=2)
-    ax_rat.tick_params(axis="both", labelsize=5)
-    # colorbar for (e) attached to its right edge via axes-divider
-    div = make_axes_locatable(ax_rat)
-    ax_cbR = div.append_axes("right", size="6%", pad=0.05)
-    cbR = fig.colorbar(imR, cax=ax_cbR,
-                          ticks=[-10, -5, 0, 5, 10])
-    cbR.set_label(r"$\log_2$ ratio", fontsize=5, labelpad=2)
-    cbR.ax.tick_params(labelsize=5)
+                  labelspacing=0.5, columnspacing=1.2)
 
     MANUSCRIPT_FIGS.mkdir(parents=True, exist_ok=True)
     out_pdf = MANUSCRIPT_FIGS / f"fig_q_eke_joint_pdf_evolution_{args.basin}.pdf"

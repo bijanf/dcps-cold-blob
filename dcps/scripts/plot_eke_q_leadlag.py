@@ -247,6 +247,7 @@ def main():
     # ---- figure -----------------------------------------------------
     fig = plt.figure(figsize=(DOUBLE_COL_IN, DOUBLE_COL_IN * 0.36))
     gs = GridSpec(1, 3, width_ratios=[1.1, 1.0, 1.0], wspace=0.55,
+                   left=0.06, right=0.985, top=0.92, bottom=0.22,
                    figure=fig)
     ax_a = fig.add_subplot(gs[0, 0])
     ax_b = fig.add_subplot(gs[0, 1])
@@ -263,8 +264,9 @@ def main():
                   label=f"peak @ {peak_lag} yr")
     ax_a.axhline(0, color="0.6", lw=0.3)
     ax_a.axvline(0, color="0.6", lw=0.3)
-    ax_a.set_xlabel("lag $\\Delta$ (yr)   $\\rho(\\mathrm{EKE}(t),\\,Q(t+\\Delta))$")
-    ax_a.set_ylabel("Pearson correlation")
+    ax_a.set_xlabel("lag $\\Delta$ (yr)   $\\rho(\\mathrm{EKE}(t),\\,Q(t+\\Delta))$",
+                      fontsize=11)
+    ax_a.set_ylabel("Pearson correlation", fontsize=11)
     ax_a.set_xlim(lags_yr.min(), lags_yr.max())
     ax_a.set_ylim(-1, 1)
     ax_a.legend(loc="lower left", fontsize=5, frameon=False)
@@ -277,8 +279,8 @@ def main():
     ax_b.axvline(sweep_peak_lag, color="C3", lw=0.6, ls="--",
                   label=f"peak @ {sweep_peak_lag} yr")
     ax_b.axhline(5, color="0.6", lw=0.3, ls=":")
-    ax_b.set_xlabel("EKE-Q pairing lag $\\Delta$ (yr)")
-    ax_b.set_ylabel("joint $p_{95}$ exit fraction (%)")
+    ax_b.set_xlabel("EKE-Q pairing lag $\\Delta$ (yr)", fontsize=11)
+    ax_b.set_ylabel("joint $p_{95}$ exit fraction (%)", fontsize=11)
     ax_b.set_xlim(sweep_yr.min(), sweep_yr.max())
     ax_b.set_ylim(0, 100)
     ax_b.legend(loc="lower right", fontsize=5, frameon=False)
@@ -304,8 +306,8 @@ def main():
                     color="C3", lw=0.7,
                     label=f"median lag = {med_lag:+d} yr")
         ax_c.set_xlim(lo, hi); ax_c.set_ylim(lo, hi)
-    ax_c.set_xlabel("EKE strict-exit year")
-    ax_c.set_ylabel("Q strict-exit year")
+    ax_c.set_xlabel("EKE strict-exit year", fontsize=11)
+    ax_c.set_ylabel("Q strict-exit year", fontsize=11)
     ax_c.legend(loc="lower right", fontsize=4, frameon=False,
                   handlelength=0.8, borderpad=0.2, labelspacing=0.25)
     ax_c.text(-0.18, 1.02, "(c)", transform=ax_c.transAxes,

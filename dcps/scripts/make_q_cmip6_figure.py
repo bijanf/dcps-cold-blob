@@ -83,7 +83,9 @@ def main():
     ax0.set_ylabel(r"Quiescence Index  $Q = -\rho$")
     ax0.set_xlim(x_left, x_right)
     ax0.set_ylim(-0.10, 0.45)
-    ax0.legend(loc="lower right", fontsize=9, framealpha=0.92)
+    ax0.legend(loc="lower center", bbox_to_anchor=(0.5, 1.01),
+                ncol=2, fontsize=18, frameon=False,
+                handletextpad=0.4, columnspacing=1.4)
     ax0.grid(True, linewidth=0.3, alpha=0.4)
 
     fig.savefig(OUT, bbox_inches="tight")
