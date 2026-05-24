@@ -8,8 +8,10 @@ era (HadISST 1870–2023), and CMIP6 future projections through 2100.
 
 **Authors.** Bijan Fallah, Masoud Rostami.
 
-**Status.** Manuscript drafted for *Nature Communications* submission;
-private working copy.
+**Status.** Manuscript drafted for journal submission; private working
+copy. Current layout: 6 main figures + extended Supplementary
+Information, aligned with the Dijkstra et al. 2026 (Nat. Rev. Phys.)
+synthesis of AMOC transitions.
 
 ---
 
@@ -17,7 +19,7 @@ private working copy.
 
 | Path | Contents |
 |---|---|
-| `manuscript/` | LaTeX source, 4 main figures, bibliography, Makefile |
+| `manuscript/` | LaTeX source (main + SI), 6 main figures, bibliography, Makefile |
 | `dcps/dcps/` | Python package: phase fields, Kuramoto order parameter, winding-number topology, transfer entropy, Nature-style figure helper |
 | `dcps/scripts/` | End-to-end analysis pipelines (multi-basin Quiescence, multi-proxy unprecedentedness test, geostrophic-EKE mechanism test, CMIP6 emergent constraint, etc.) |
 | `dcps/tests/` | Unit tests for the package |

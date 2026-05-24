@@ -70,3 +70,22 @@ p6_bundle.tar.gz
 # Sharable manuscript bundles built by `zip -r ... manuscript/...`
 manuscript-bundle-*.zip
 manuscript-bundle-README.md
+
+# Tool/assistant artefacts - never commit any conversation, session,
+# planning, or tooling output. Belt and suspenders so future automation
+# cannot accidentally leak working notes into the public repo.
+.claude/
+.claude*
+CLAUDE.md
+.gemini/
+GEMINI.md
+.cursor/
+.anthropic/
+.openai/
+*.claude.md
+*.gemini.md
+*conversation*.md
+*session*.md
+*transcript*.md
+*chat*.md
+*handoff*.md
