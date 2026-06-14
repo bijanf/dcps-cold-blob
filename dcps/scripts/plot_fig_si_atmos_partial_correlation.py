@@ -31,7 +31,6 @@ Output: manuscript/figs/fig_si_atmos_partial_correlation.pdf
 """
 from __future__ import annotations
 from pathlib import Path
-import glob
 import re
 
 import matplotlib
@@ -589,7 +588,7 @@ def main():
     print(f"wrote {OUT}")
     print(f"  (a) basin-mean R^2 NAO+AMO     = {nao_mean * 100:.2f}%")
     print(f"  (b) basin-mean R^2 ERA5 4-pred = {era5_mean * 100:.2f}%")
-    print(f"  (c) commonality (cold-blob box, bandpass 1-10 yr):")
+    print("  (c) commonality (cold-blob box, bandpass 1-10 yr):")
     print(f"        unique EKE   = {parts['unique_eke'] * 100:.1f}%")
     print(f"        shared       = {parts['shared'] * 100:.1f}%")
     print(f"        unique atm   = {parts['unique_atm'] * 100:.1f}%")
