@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+*.egg
+build/
+dist/
+.venv/
+venv/
+
+# LaTeX build artifacts
+manuscript/build/
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Analysis caches (regenerable from scripts)
+dcps/cache/
+
+# Stale/old figures not used in current manuscript
+dcps/figures/
+
+# Bulk external data (downloadable from upstream sources)
+data/external/hadisst/
+data/external/palmod_130k/lipd_unzipped/
+data/external/palmod_130k/PalMod2_0_0.zip
+data/external/atmospheric/
+data/external/era5/
+data/external/era5_z500/
+
+# Bulk scientific-data binary formats — never commit these, regardless
+# of where they live in the tree. Datasets must be downloaded by users
+# via the scripts in dcps/scripts/data_fetchers/ or via the README's
+# curl recipes.
+*.nc
+*.nc4
+*.h5
+*.hdf5
+*.zarr
+*.grib
+*.grb
+*.netcdf
+
+# Editor / OS artifacts
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets and credentials (just in case)
+*.env
+*.pem
+credentials.json
+token.json
+secrets/
+.aws/
+# Local CEDA credential install script - NEVER commit
+add_ceda_to_netrc.sh
+*.netrc
+.netrc
+
+# Background-process logs (may contain Pangeo URLs or auth artefacts)
+logs/
+
+# External-drive symlink and large external dataset mirrors
+data/external_drive/
+
+# P6 PIK bundle staging area (canonical files copied into data/external/p6/)
+p6_results/
+p6_bundle.tar.gz
+
+# Sharable manuscript bundles built by `zip -r ... manuscript/...`
+manuscript-bundle-*.zip
+manuscript-bundle-README.md
+
+# Working notes, scratch markdown, and conversation transcripts.
+# Generic patterns — keep working notes out of public history.
+*conversation*.md
+*session*.md
+*transcript*.md
+*chat*.md
+*handoff*.md
+*notes*.md
+*scratch*.md
+*draft*.md
+.local-config/
+.local-tools/
+*-output.xml
+
+# Local workspace symlink to the manuscript working tree (when present).
+# Figure-writing scripts resolve `manuscript/figs/...` through this
+# symlink; the link itself is a per-machine convenience and is never
+# tracked in this repo.
+/manuscript
+/manuscript/
+
+# Companion-paper sources (live outside this repo).
+quiescence_toolkit/paper/

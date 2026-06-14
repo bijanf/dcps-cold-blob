@@ -1,0 +1,17 @@
+{
+  "bessel": {
+    "best_param": 1.0,
+    "residual_mse": NaN,
+    "n": 14022
+  },
+  "weak": {
+    "best_param": 0.0006038299599231681,
+    "residual_mse": 0.3947789114818397,
+    "n": 14022
+  },
+  "simple": {
+    "best_param": 144.12733006836004,
+    "residual_mse": 0.030813229171052368,
+    "n": 14022
+  }
+}

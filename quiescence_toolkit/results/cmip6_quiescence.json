@@ -1,0 +1,79 @@
+{
+  "Q_per_model": {
+    "high_res": {
+      "CESM2": {
+        "rho": -0.21637275208910933,
+        "p": 1.0888042614183672e-42,
+        "n_cells": 3914,
+        "Q": 0.21637275208910933
+      },
+      "HadGEM3-GC31-MM": {
+        "rho": 0.020005764299404153,
+        "p": 4.7422579986128776e-09,
+        "n_cells": 85667,
+        "Q": -0.020005764299404153
+      },
+      "NorESM2-MM": {
+        "rho": -0.13341127728714222,
+        "p": 9.590015416389896e-33,
+        "n_cells": 7911,
+        "Q": 0.13341127728714222
+      },
+      "CNRM-CM6-1-HR": {
+        "rho": -0.024862285178252654,
+        "p": 3.420583859641335e-13,
+        "n_cells": 85638,
+        "Q": 0.024862285178252654
+      },
+      "MPI-ESM1-2-HR": {
+        "rho": -0.1758408927966045,
+        "p": 5.1131861789692225e-135,
+        "n_cells": 19474,
+        "Q": 0.1758408927966045
+      }
+    },
+    "low_res": {
+      "CESM2-FV2": {
+        "rho": -0.14324468760786463,
+        "p": 2.1511079954294024e-19,
+        "n_cells": 3914,
+        "Q": 0.14324468760786463
+      },
+      "HadGEM3-GC31-LL": {
+        "rho": 0.007041539907679466,
+        "p": 0.5945456641783436,
+        "n_cells": 5716,
+        "Q": -0.007041539907679466
+      },
+      "NorESM2-LM": {
+        "rho": -0.2242105282534228,
+        "p": 1.0479615429476231e-90,
+        "n_cells": 7911,
+        "Q": 0.2242105282534228
+      },
+      "CNRM-CM6-1": {
+        "rho": -0.01925940669804053,
+        "p": 0.20963572580866208,
+        "n_cells": 4245,
+        "Q": 0.01925940669804053
+      },
+      "MPI-ESM1-2-LR": {
+        "rho": -0.06981631121562581,
+        "p": 9.094205357928161e-12,
+        "n_cells": 9522,
+        "Q": 0.06981631121562581
+      }
+    }
+  },
+  "n_high_res": 5,
+  "n_low_res": 5,
+  "mann_whitney_runnable": true,
+  "median_high_res": 0.13341127728714222,
+  "median_low_res": 0.06981631121562581,
+  "median_gap": 0.0635949660715164,
+  "U_stat": 13.0,
+  "p_one_sided_less": 0.5793650793650793,
+  "p_two_sided": 1.0,
+  "P3_decision": "not supported",
+  "note": "HighResMIP hist-1950 is not on Pangeo (0 tos rows). Substituted CMIP6 resolution-variant pairs from the same five model families: CESM2/CESM2-FV2, HadGEM3-MM/LL, NorESM2-MM/LM, CNRM-CM6-1-HR/CNRM-CM6-1, MPI-ESM1-2-HR/LR. This exercises the same eddy-permitting vs eddy-parameterised physics that P3 predicts."
+}

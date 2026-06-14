@@ -1,0 +1,11 @@
+{
+  "window_months": 60,
+  "n_windows": 228,
+  "rho_R_Psi": -0.015179228436356704,
+  "p_R_Psi": 0.8196814653793357,
+  "rho_sigma2_Psi": 0.23370150346049245,
+  "p_sigma2_Psi": 0.00037251324918840287,
+  "partial_rho_sigma2_Psi_given_R": 0.23921061490035544,
+  "partial_p": 0.0002671712810635091,
+  "verdict": "ambiguous"
+}
